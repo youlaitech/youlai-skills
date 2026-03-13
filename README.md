@@ -4,17 +4,29 @@
 
 ## Skills 列表
 
-| Skill | 描述 | 技术栈 | 包含内容 |
-| --- | --- | --- | --- |
-| `vue-admin` | Vue3 管理后台开发规范 | Vue3 + Element Plus + TypeScript | 目录结构、命名规范、组件规范、API 规范、权限控制 |
-| `uniapp` | UniApp 移动端开发规范 | UniApp + Vue3 + wot-design-uni | UnoCSS 边界、BEM 命名、卡片设计、暗黑模式、rpx 规范 |
-| `spring-boot` | Java 后端开发规范 | Spring Boot + MyBatis-Plus | 目录结构、RESTful API、响应格式、实体规范、JWT 认证 |
-| `nestjs` | Node.js 后端开发规范 | NestJS + TypeORM | 目录结构、Controller 模板、实体规范、JWT 策略 |
-| `gin` | Go 后端开发规范 | Gin + GORM | 目录结构、响应格式、实体规范、中间件、路由注册 |
-| `django` | Python 后端开发规范 | Django REST Framework | ViewSet + Serializer、模型规范、认证、路由 |
-| `thinkphp` | PHP 后端开发规范 | ThinkPHP 8 | 目录结构、响应格式、模型规范、JWT 服务、验证器 |
-| `aspnet` | .NET 后端开发规范 | ASP.NET Core 8 | 分层架构、Controller、EF Core 实体、JWT 认证 |
-| `mysql-design` | MySQL 数据库设计规范 | MySQL 8 | 表命名、字段类型、索引规范、SQL 编写、性能优化 |
+### 前端开发
+
+| Skill | 描述 | 技术栈 |
+| --- | --- | --- |
+| [`vue-admin`](https://skills.sh/youlaitech/youlai-skills/vue-admin) | Vue3 管理后台开发规范 | Vue3 + Element Plus + TypeScript |
+| [`uniapp`](https://skills.sh/youlaitech/youlai-skills/uniapp) | UniApp 移动端开发规范 | UniApp + Vue3 + wot-design-uni |
+
+### 后端开发
+
+| Skill | 描述 | 技术栈 |
+| --- | --- | --- |
+| [`spring-boot`](https://skills.sh/youlaitech/youlai-skills/spring-boot) | Java 后端开发规范 | Spring Boot + MyBatis-Plus |
+| [`nestjs`](https://skills.sh/youlaitech/youlai-skills/nestjs) | Node.js 后端开发规范 | NestJS + TypeORM |
+| [`gin`](https://skills.sh/youlaitech/youlai-skills/gin) | Go 后端开发规范 | Gin + GORM |
+| [`django`](https://skills.sh/youlaitech/youlai-skills/django) | Python 后端开发规范 | Django REST Framework |
+| [`thinkphp`](https://skills.sh/youlaitech/youlai-skills/thinkphp) | PHP 后端开发规范 | ThinkPHP 8 |
+| [`aspnet`](https://skills.sh/youlaitech/youlai-skills/aspnet) | .NET 后端开发规范 | ASP.NET Core 8 |
+
+### 数据库
+
+| Skill | 描述 | 技术栈 |
+| --- | --- | --- |
+| [`mysql-design`](https://skills.sh/youlaitech/youlai-skills/mysql-design) | MySQL 数据库设计规范 | MySQL 8 |
 
 ## 安装
 
@@ -75,7 +87,3 @@ youlai-skills/
     ├── aspnet/SKILL.md
     └── mysql-design/SKILL.md
 ```
-
-## License
-
-MIT
