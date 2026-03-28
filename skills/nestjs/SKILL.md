@@ -17,16 +17,14 @@ description: NestJS 后端开发规范。当开发 NestJS 项目、实现 REST A
 
 ## Part 1: 技术栈
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Node.js | 20+ | 运行环境 |
-| NestJS | 10+ | 后端框架 |
-| TypeScript | 5.0+ | 类型安全 |
-| TypeORM | 0.3+ | ORM 框架 |
-| MySQL | 8.0+ | 数据库 |
-| Redis | 7.0+ | 缓存 |
-| JWT | - | Token 认证 |
-| Swagger | - | API 文档 |
+- **Node.js** - 运行环境
+- **NestJS** - 后端框架
+- **TypeScript** - 类型安全
+- **TypeORM** - ORM 框架
+- **MySQL** - 数据库
+- **Redis** - 缓存
+- **JWT** - Token 认证
+- **Swagger** - API 文档
 
 ---
 
@@ -88,44 +86,44 @@ src/
 
 ### 文件命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 模块 | kebab-case | `user.module.ts` |
-| 控制器 | kebab-case | `user.controller.ts` |
-| 服务 | kebab-case | `user.service.ts` |
-| 实体 | kebab-case | `user.entity.ts` |
-| DTO | kebab-case | `user-form.dto.ts` |
-| 接口 | kebab-case | `result.interface.ts` |
+| 类型   | 规范       | 示例                  |
+| ------ | ---------- | --------------------- |
+| 模块   | kebab-case | `user.module.ts`      |
+| 控制器 | kebab-case | `user.controller.ts`  |
+| 服务   | kebab-case | `user.service.ts`     |
+| 实体   | kebab-case | `user.entity.ts`      |
+| DTO    | kebab-case | `user-form.dto.ts`    |
+| 接口   | kebab-case | `result.interface.ts` |
 
 ### 类命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 控制器 | 实体 + Controller | `UserController` |
-| 服务 | 实体 + Service | `UserService` |
-| 模块 | 实体 + Module | `UserModule` |
-| 实体 | PascalCase | `User` 或 `SysUser` |
-| DTO | 功能 + DTO | `UserVO`, `UserForm`, `UserPageDto` |
+| 类型   | 规范              | 示例                                |
+| ------ | ----------------- | ----------------------------------- |
+| 控制器 | 实体 + Controller | `UserController`                    |
+| 服务   | 实体 + Service    | `UserService`                       |
+| 模块   | 实体 + Module     | `UserModule`                        |
+| 实体   | PascalCase        | `User` 或 `SysUser`                 |
+| DTO    | 功能 + DTO        | `UserVO`, `UserForm`, `UserPageDto` |
 
 ### 方法命名
 
-| 动作 | 前缀 | 示例 |
-|------|------|------|
-| 查询单个 | get | `getById()` |
-| 查询列表 | list | `listUsers()` |
-| 分页查询 | page | `pageUsers()` |
-| 新增 | create | `createUser()` |
-| 更新 | update | `updateUser()` |
-| 删除 | remove/delete | `removeById()` |
+| 动作     | 前缀          | 示例           |
+| -------- | ------------- | -------------- |
+| 查询单个 | get           | `getById()`    |
+| 查询列表 | list          | `listUsers()`  |
+| 分页查询 | page          | `pageUsers()`  |
+| 新增     | create        | `createUser()` |
+| 更新     | update        | `updateUser()` |
+| 删除     | remove/delete | `removeById()` |
 
 ### 变量命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 变量 | camelCase | `userList` |
-| 常量 | UPPER_SNAKE_CASE | `MAX_SIZE` |
-| 私有变量 | _ 前缀 | `_internalState` |
-| 布尔值 | is/has/can 前缀 | `isDeleted`, `hasPermission` |
+| 类型     | 规范             | 示例                         |
+| -------- | ---------------- | ---------------------------- |
+| 变量     | camelCase        | `userList`                   |
+| 常量     | UPPER_SNAKE_CASE | `MAX_SIZE`                   |
+| 私有变量 | \_ 前缀          | `_internalState`             |
+| 布尔值   | is/has/can 前缀  | `isDeleted`, `hasPermission` |
 
 ---
 
@@ -133,54 +131,54 @@ src/
 
 ### 标准 CRUD 路径
 
-| 操作 | 方法 | 路径 |
-|------|------|------|
-| 分页列表 | GET | `/api/v1/users/page` |
-| 详情 | GET | `/api/v1/users/:id` |
-| 新增 | POST | `/api/v1/users` |
-| 更新 | PUT | `/api/v1/users` |
-| 删除 | DELETE | `/api/v1/users/:id` |
-| 批量删除 | DELETE | `/api/v1/users/batch` |
-| 下拉选项 | GET | `/api/v1/users/options` |
+| 操作     | 方法   | 路径                    |
+| -------- | ------ | ----------------------- |
+| 分页列表 | GET    | `/api/v1/users/page`    |
+| 详情     | GET    | `/api/v1/users/:id`     |
+| 新增     | POST   | `/api/v1/users`         |
+| 更新     | PUT    | `/api/v1/users`         |
+| 删除     | DELETE | `/api/v1/users/:id`     |
+| 批量删除 | DELETE | `/api/v1/users/batch`   |
+| 下拉选项 | GET    | `/api/v1/users/options` |
 
 ### Controller 模板
 
 ```typescript
-@Controller('api/v1/users')
-@ApiTags('用户管理')
+@Controller("api/v1/users")
+@ApiTags("用户管理")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('page')
-  @ApiOperation({ summary: '用户分页列表' })
+  @Get("page")
+  @ApiOperation({ summary: "用户分页列表" })
   async page(@Query() query: UserPageDto) {
     return this.userService.pageUsers(query);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: '用户详情' })
-  async getById(@Param('id') id: string) {
+  @Get(":id")
+  @ApiOperation({ summary: "用户详情" })
+  async getById(@Param("id") id: string) {
     return this.userService.getUserById(Number(id));
   }
 
   @Post()
-  @ApiOperation({ summary: '新增用户' })
-  @RequirePermission('sys:user:add')
+  @ApiOperation({ summary: "新增用户" })
+  @RequirePermission("sys:user:add")
   async create(@Body() form: UserForm) {
     return this.userService.createUser(form);
   }
 
   @Put()
-  @ApiOperation({ summary: '更新用户' })
-  @RequirePermission('sys:user:edit')
+  @ApiOperation({ summary: "更新用户" })
+  @RequirePermission("sys:user:edit")
   async update(@Body() form: UserForm) {
     this.userService.updateUser(form);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: '删除用户' })
-  @RequirePermission('sys:user:delete')
-  async remove(@Param('id') id: string) {
+  @Delete(":id")
+  @ApiOperation({ summary: "删除用户" })
+  @RequirePermission("sys:user:delete")
+  async remove(@Param("id") id: string) {
     this.userService.removeUserById(Number(id));
   }
 }
@@ -214,9 +212,9 @@ export interface PageResult<T> {
 export class TransformInterceptor<T> implements NestInterceptor<T, Result<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<Result<T>> {
     return next.handle().pipe(
-      map(data => ({
+      map((data) => ({
         code: 200,
-        msg: '操作成功',
+        msg: "操作成功",
         data,
       })),
     );
@@ -229,20 +227,20 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Result<T>> {
 ```typescript
 // common/dto/page.dto.ts
 export class PageDto {
-  @ApiProperty({ description: '页码', default: 1 })
+  @ApiProperty({ description: "页码", default: 1 })
   @IsInt()
   @Min(1)
   @Type(() => Number)
   pageNum: number;
 
-  @ApiProperty({ description: '每页数量', default: 20 })
+  @ApiProperty({ description: "每页数量", default: 20 })
   @IsInt()
   @Min(1)
   @Max(100)
   @Type(() => Number)
   pageSize: number;
 
-  @ApiProperty({ description: '关键词', required: false })
+  @ApiProperty({ description: "关键词", required: false })
   @IsString()
   @IsOptional()
   keywords?: string;
@@ -259,22 +257,22 @@ export class PageDto {
 // common/entities/base.entity.ts
 @Entity()
 export abstract class BaseEntity {
-  @PrimaryGeneratedColumn('increment', { type: 'bigint' })
+  @PrimaryGeneratedColumn("increment", { type: "bigint" })
   id: string;
 
-  @CreateDateColumn({ name: 'create_time', comment: '创建时间' })
+  @CreateDateColumn({ name: "create_time", comment: "创建时间" })
   createTime: Date;
 
-  @UpdateDateColumn({ name: 'update_time', comment: '更新时间' })
+  @UpdateDateColumn({ name: "update_time", comment: "更新时间" })
   updateTime: Date;
 
-  @Column({ name: 'create_by', type: 'bigint', nullable: true, comment: '创建人' })
+  @Column({ name: "create_by", type: "bigint", nullable: true, comment: "创建人" })
   createBy: string;
 
-  @Column({ name: 'update_by', type: 'bigint', nullable: true, comment: '更新人' })
+  @Column({ name: "update_by", type: "bigint", nullable: true, comment: "更新人" })
   updateBy: string;
 
-  @Column({ type: 'tinyint', default: 0, comment: '删除标志(0未删除 1已删除)' })
+  @Column({ type: "tinyint", default: 0, comment: "删除标志(0未删除 1已删除)" })
   deleted: number;
 }
 ```
@@ -283,34 +281,34 @@ export abstract class BaseEntity {
 
 ```typescript
 // modules/system/user/entities/user.entity.ts
-@Entity('sys_user')
-@ApiModel('用户实体')
+@Entity("sys_user")
+@ApiModel("用户实体")
 export class SysUser extends BaseEntity {
-  @Column({ length: 50, unique: true, comment: '用户名' })
-  @ApiProperty({ description: '用户名' })
+  @Column({ length: 50, unique: true, comment: "用户名" })
+  @ApiProperty({ description: "用户名" })
   username: string;
 
-  @Column({ length: 100, select: false, comment: '密码' })
+  @Column({ length: 100, select: false, comment: "密码" })
   password: string;
 
-  @Column({ length: 50, comment: '昵称' })
-  @ApiProperty({ description: '昵称' })
+  @Column({ length: 50, comment: "昵称" })
+  @ApiProperty({ description: "昵称" })
   nickname: string;
 
-  @Column({ length: 20, nullable: true, comment: '手机号' })
-  @ApiProperty({ description: '手机号' })
+  @Column({ length: 20, nullable: true, comment: "手机号" })
+  @ApiProperty({ description: "手机号" })
   mobile: string;
 
-  @Column({ length: 100, nullable: true, comment: '邮箱' })
-  @ApiProperty({ description: '邮箱' })
+  @Column({ length: 100, nullable: true, comment: "邮箱" })
+  @ApiProperty({ description: "邮箱" })
   email: string;
 
-  @Column({ type: 'tinyint', default: 1, comment: '状态(1正常 0禁用)' })
-  @ApiProperty({ description: '状态' })
+  @Column({ type: "tinyint", default: 1, comment: "状态(1正常 0禁用)" })
+  @ApiProperty({ description: "状态" })
   status: number;
 
-  @Column({ name: 'dept_id', type: 'bigint', nullable: true, comment: '部门ID' })
-  @ApiProperty({ description: '部门ID' })
+  @Column({ name: "dept_id", type: "bigint", nullable: true, comment: "部门ID" })
+  @ApiProperty({ description: "部门ID" })
   deptId: string;
 }
 ```
@@ -330,25 +328,25 @@ export class UserService {
 
   async pageUsers(query: UserPageDto): Promise<PageResult<UserVO>> {
     const { pageNum, pageSize, keywords, status } = query;
-    const qb = this.userRepository.createQueryBuilder('user');
+    const qb = this.userRepository.createQueryBuilder("user");
 
     if (keywords) {
-      qb.andWhere('user.username LIKE :keywords OR user.nickname LIKE :keywords', {
+      qb.andWhere("user.username LIKE :keywords OR user.nickname LIKE :keywords", {
         keywords: `%${keywords}%`,
       });
     }
 
     if (status !== undefined) {
-      qb.andWhere('user.status = :status', { status });
+      qb.andWhere("user.status = :status", { status });
     }
 
-    qb.orderBy('user.createTime', 'DESC');
+    qb.orderBy("user.createTime", "DESC");
     qb.skip((pageNum - 1) * pageSize).take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
     return {
       code: 200,
-      msg: '操作成功',
+      msg: "操作成功",
       data: {
         list: list.map(this.toVO),
         total,
@@ -359,7 +357,7 @@ export class UserService {
   async getUserById(id: number): Promise<UserVO> {
     const user = await this.userRepository.findOne({ where: { id: String(id) } });
     if (!user) {
-      throw new BusinessException('用户不存在');
+      throw new BusinessException("用户不存在");
     }
     return this.toVO(user);
   }
@@ -367,7 +365,7 @@ export class UserService {
   async createUser(form: UserForm): Promise<number> {
     const exists = await this.userRepository.findOne({ where: { username: form.username } });
     if (exists) {
-      throw new BusinessException('用户名已存在');
+      throw new BusinessException("用户名已存在");
     }
 
     const user = this.userRepository.create({
@@ -406,7 +404,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get('jwt.secret'),
+      secretOrKey: configService.get("jwt.secret"),
     });
   }
 
@@ -424,7 +422,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 ```typescript
 // common/decorators/permission.decorator.ts
 export const RequirePermission = (...permissions: string[]) =>
-  SetMetadata('permissions', permissions);
+  SetMetadata("permissions", permissions);
 
 // common/guards/permission.guard.ts
 @Injectable()
@@ -432,7 +430,7 @@ export class PermissionGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const required = this.reflector.getAllAndOverride<string[]>('permissions', [
+    const required = this.reflector.getAllAndOverride<string[]>("permissions", [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -442,7 +440,7 @@ export class PermissionGuard implements CanActivate {
     }
 
     const { permissions } = context.switchToHttp().getRequest().user;
-    return required.some(p => permissions.includes(p));
+    return required.some((p) => permissions.includes(p));
   }
 }
 ```
@@ -460,7 +458,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse();
 
     let code = 500;
-    let msg = '系统异常';
+    let msg = "系统异常";
 
     if (exception instanceof BusinessException) {
       code = exception.code;

@@ -21,15 +21,15 @@ description: UniApp 移动端开发规范。当开发 UniApp + Vue3 移动应用
 
 **能用 wot-design-uni 官方组件，绝不自定义**
 
-| 需求 | 使用 | 避免 |
-|------|------|------|
-| 按钮 | `<wd-button>` | 自定义 `.btn` |
-| 输入框 | `<wd-input>` | 自定义 `.input` |
-| 卡片 | `<wd-card>` / `<wd-cell-group>` | 自定义 `.card` |
-| 弹窗 | `<wd-popup>` / `<wd-dialog>` | 自定义弹窗 |
-| 列表 | `<wd-cell>` / `<wd-grid>` | 自定义列表 |
-| 加载 | `<wd-loading>` / `<wd-skeleton>` | 自定义动画 |
-| 空状态 | `<wd-status>` | 自定义空状态 |
+| 需求   | 使用                             | 避免            |
+| ------ | -------------------------------- | --------------- |
+| 按钮   | `<wd-button>`                    | 自定义 `.btn`   |
+| 输入框 | `<wd-input>`                     | 自定义 `.input` |
+| 卡片   | `<wd-card>` / `<wd-cell-group>`  | 自定义 `.card`  |
+| 弹窗   | `<wd-popup>` / `<wd-dialog>`     | 自定义弹窗      |
+| 列表   | `<wd-cell>` / `<wd-grid>`        | 自定义列表      |
+| 加载   | `<wd-loading>` / `<wd-skeleton>` | 自定义动画      |
+| 空状态 | `<wd-status>`                    | 自定义空状态    |
 
 ### 0.2 CSS 统一原则
 
@@ -37,11 +37,21 @@ description: UniApp 移动端开发规范。当开发 UniApp + Vue3 移动应用
 
 ```scss
 // ❌ 错误：每个组件都定义一遍
-.user-card { padding: 24rpx; background: var(--color-bg); }
-.role-card { padding: 24rpx; background: var(--color-bg); }
+.user-card {
+  padding: 24rpx;
+  background: var(--color-bg);
+}
+.role-card {
+  padding: 24rpx;
+  background: var(--color-bg);
+}
 
 // ✅ 正确：统一基础类
-.base-card { padding: 24rpx; background: var(--color-bg); border-radius: 16rpx; }
+.base-card {
+  padding: 24rpx;
+  background: var(--color-bg);
+  border-radius: 16rpx;
+}
 ```
 
 ### 0.3 暗黑模式强制要求
@@ -50,24 +60,28 @@ description: UniApp 移动端开发规范。当开发 UniApp + Vue3 移动应用
 
 ```scss
 // ❌ 错误：硬编码颜色
-.card { background: #ffffff; color: #333333; }
+.card {
+  background: #ffffff;
+  color: #333333;
+}
 
 // ✅ 正确：使用 CSS 变量
-.card { background: var(--color-bg); color: var(--color-text); }
+.card {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
 ```
 
 ---
 
 ## Part 1: 技术栈
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Vue | 3.4+ | 前端框架 |
-| Uni-app | 3.0+ | 跨平台框架 |
-| wot-design-uni | 1.3+ | UI 组件库 |
-| TypeScript | 5.0+ | 类型安全 |
-| UnoCSS | 0.58+ | 原子 CSS |
-| Pinia | 2.1+ | 状态管理 |
+- **Vue** - 前端框架
+- **Uni-app** - 跨平台框架
+- **wot-design-uni** - UI 组件库
+- **TypeScript** - 类型安全
+- **UnoCSS** - 原子 CSS
+- **Pinia** - 状态管理
 
 ---
 
@@ -134,10 +148,10 @@ src/
 
 ### UnoCSS 原子类 + BEM 混合方案
 
-| 原子类数量 | 方案 |
-|-----------|------|
-| ≤3 个 | UnoCSS 原子类 |
-| >3 个 | BEM CSS 类 |
+| 原子类数量 | 方案          |
+| ---------- | ------------- |
+| ≤3 个      | UnoCSS 原子类 |
+| >3 个      | BEM CSS 类    |
 
 ### 合并原则（元素已有类名时）
 
@@ -151,19 +165,19 @@ src/
 
 ```scss
 .filter-bar {
-  display: flex;        // 合并 flex
-  align-items: center;  // 合并 items-center
-  margin-top: 12rpx;    // 合并 mt-12rpx
+  display: flex; // 合并 flex
+  align-items: center; // 合并 items-center
+  margin-top: 12rpx; // 合并 mt-12rpx
 }
 ```
 
 ### 使用预设快捷类
 
-| 原子类组合 | 预设 | 减少 |
-|-----------|------|------|
-| `flex items-center` | `flex-start` | 2→1 |
-| `flex justify-between items-center` | `flex-between` | 3→1 |
-| `flex justify-center items-center` | `flex-center` | 3→1 |
+| 原子类组合                          | 预设           | 减少 |
+| ----------------------------------- | -------------- | ---- |
+| `flex items-center`                 | `flex-start`   | 2→1  |
+| `flex justify-between items-center` | `flex-between` | 3→1  |
+| `flex justify-center items-center`  | `flex-center`  | 3→1  |
 
 ---
 
@@ -171,34 +185,34 @@ src/
 
 ### 文件命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 组件 | PascalCase | `UserCard.vue` |
-| 页面 | kebab-case 或小写 | `user-profile.vue` |
-| 组合式函数 | camelCase + use | `useUserStore.ts` |
-| 工具函数 | camelCase | `formatDate.ts` |
-| 常量 | UPPER_SNAKE_CASE | `API_PREFIX.ts` |
+| 类型       | 规范              | 示例               |
+| ---------- | ----------------- | ------------------ |
+| 组件       | PascalCase        | `UserCard.vue`     |
+| 页面       | kebab-case 或小写 | `user-profile.vue` |
+| 组合式函数 | camelCase + use   | `useUserStore.ts`  |
+| 工具函数   | camelCase         | `formatDate.ts`    |
+| 常量       | UPPER_SNAKE_CASE  | `API_PREFIX.ts`    |
 
 ### 变量命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 变量 | camelCase | `userList` |
-| 常量 | UPPER_SNAKE_CASE | `MAX_COUNT` |
-| 私有变量 | _ 前缀 | `_internalState` |
-| 布尔值 | is/has/can 前缀 | `isLoading`, `hasToken` |
+| 类型     | 规范             | 示例                    |
+| -------- | ---------------- | ----------------------- |
+| 变量     | camelCase        | `userList`              |
+| 常量     | UPPER_SNAKE_CASE | `MAX_COUNT`             |
+| 私有变量 | \_ 前缀          | `_internalState`        |
+| 布尔值   | is/has/can 前缀  | `isLoading`, `hasToken` |
 
 ### 方法命名
 
-| 动作 | 前缀 | 示例 |
-|------|------|------|
-| 获取/加载 | fetch/load | `fetchUserList` |
-| 提交/保存 | submit/save | `submitForm` |
-| 新增 | create | `createUser` |
-| 更新 | update | `updateUser` |
-| 删除 | delete | `deleteUser` |
-| 打开/关闭 | open/close | `openDialog` |
-| 事件处理 | handle | `handleSubmit` |
+| 动作      | 前缀        | 示例            |
+| --------- | ----------- | --------------- |
+| 获取/加载 | fetch/load  | `fetchUserList` |
+| 提交/保存 | submit/save | `submitForm`    |
+| 新增      | create      | `createUser`    |
+| 更新      | update      | `updateUser`    |
+| 删除      | delete      | `deleteUser`    |
+| 打开/关闭 | open/close  | `openDialog`    |
+| 事件处理  | handle      | `handleSubmit`  |
 
 ### CSS 命名（BEM）
 
@@ -393,12 +407,12 @@ onLoad(() => fetchList());
 
 **移动端卡片 ≠ Web 表格**
 
-| 层级 | 内容 | 视觉权重 | 示例 |
-|------|------|----------|------|
-| 主信息 | 身份识别 | 最突出 | 头像 + 用户名 + 状态 |
-| 次信息 | 身份定位 | 中等 | 角色 + 部门 |
-| 辅助信息 | 联系方式 | 较弱 | 手机号 + 邮箱 |
-| 元信息 | 时间戳 | 最弱 | 创建时间 |
+| 层级     | 内容     | 视觉权重 | 示例                 |
+| -------- | -------- | -------- | -------------------- |
+| 主信息   | 身份识别 | 最突出   | 头像 + 用户名 + 状态 |
+| 次信息   | 身份定位 | 中等     | 角色 + 部门          |
+| 辅助信息 | 联系方式 | 较弱     | 手机号 + 邮箱        |
+| 元信息   | 时间戳   | 最弱     | 创建时间             |
 
 ### 卡片模板
 
@@ -413,7 +427,7 @@ onLoad(() => fetchList());
         <text class="user-card__role">{{ user.roleName }} · {{ user.deptName }}</text>
       </view>
       <wd-tag :type="user.status === 1 ? 'success' : 'danger'" plain>
-        {{ user.status === 1 ? '正常' : '禁用' }}
+        {{ user.status === 1 ? "正常" : "禁用" }}
       </wd-tag>
     </view>
 
@@ -557,12 +571,12 @@ page {
 - 设计稿基准：750rpx
 - 字体大小：偶数值
 
-| 场景 | 字号 | 说明 |
-|------|------|------|
-| 辅助信息 | 24rpx | 描述、标签、页脚 |
+| 场景      | 字号  | 说明               |
+| --------- | ----- | ------------------ |
+| 辅助信息  | 24rpx | 描述、标签、页脚   |
 | 按钮/次要 | 26rpx | 次要操作、筛选按钮 |
-| 基础字号 | 28rpx | 正文、列表项 |
-| 标题 | 32rpx | 页面标题、重要信息 |
+| 基础字号  | 28rpx | 正文、列表项       |
+| 标题      | 32rpx | 页面标题、重要信息 |
 
 - 间距：4 的倍数 `16rpx`、`24rpx`、`32rpx`
 

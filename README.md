@@ -28,6 +28,12 @@
 | --- | --- | --- |
 | [`mysql-design`](https://skills.sh/youlaitech/youlai-skills/mysql-design) | MySQL 数据库设计规范 | MySQL 8 |
 
+### 开发工具
+
+| Skill | 描述 | 适用场景 |
+| --- | --- | --- |
+| [`git-version`](https://skills.sh/youlaitech/youlai-skills/git-version) | Git 版本管理自动化规范 | Commit/Tag/Changelog/Release Notes |
+
 ## 安装
 
 ```bash
@@ -49,6 +55,7 @@ Skills 根据项目类型自动触发：
 | PHP ThinkPHP      | `thinkphp`     |
 | .NET ASP.NET Core | `aspnet`       |
 | 数据库设计        | `mysql-design` |
+| Git 版本管理      | `git-version`  |
 
 ## 每个 Skill 包含
 
@@ -85,5 +92,6 @@ youlai-skills/
     ├── django/SKILL.md
     ├── thinkphp/SKILL.md
     ├── aspnet/SKILL.md
-    └── mysql-design/SKILL.md
+    ├── mysql-design/SKILL.md
+    └── git-version/SKILL.md
 ```

@@ -17,15 +17,13 @@ description: Spring Boot 后端开发规范。当开发 Spring Boot 项目、实
 
 ## Part 1: 技术栈
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| JDK | 17+ | Java 运行环境 |
-| Spring Boot | 3.2+ | 基础框架 |
-| MyBatis-Plus | 3.5+ | ORM 框架 |
-| MySQL | 8.0+ | 数据库 |
-| Redis | 7.0+ | 缓存 |
-| JWT | 0.12+ | Token 认证 |
-| Knife4j | 4.4+ | API 文档 |
+- **JDK** - Java 运行环境
+- **Spring Boot** - 基础框架
+- **MyBatis-Plus** - ORM 框架
+- **MySQL** - 数据库
+- **Redis** - 缓存
+- **JWT** - Token 认证
+- **Knife4j** - API 文档
 
 ---
 
@@ -100,37 +98,37 @@ src/main/java/com/youlai/
 
 ### 类命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 实体 | 实体名 + Entity 或前缀 Sys | `User` 或 `SysUser` |
-| DTO | 功能 + DTO 类型 | `UserVO`, `UserForm`, `UserPageQuery` |
-| Service | 实体 + Service | `UserService` |
-| ServiceImpl | 实体 + ServiceImpl | `UserServiceImpl` |
-| Controller | 实体 + Controller | `UserController` |
-| Mapper | 实体 + Mapper | `UserMapper` |
-| Converter | 实体 + Converter | `UserConverter` |
+| 类型        | 规范                       | 示例                                  |
+| ----------- | -------------------------- | ------------------------------------- |
+| 实体        | 实体名 + Entity 或前缀 Sys | `User` 或 `SysUser`                   |
+| DTO         | 功能 + DTO 类型            | `UserVO`, `UserForm`, `UserPageQuery` |
+| Service     | 实体 + Service             | `UserService`                         |
+| ServiceImpl | 实体 + ServiceImpl         | `UserServiceImpl`                     |
+| Controller  | 实体 + Controller          | `UserController`                      |
+| Mapper      | 实体 + Mapper              | `UserMapper`                          |
+| Converter   | 实体 + Converter           | `UserConverter`                       |
 
 ### 方法命名
 
-| 动作 | 前缀 | 示例 |
-|------|------|------|
-| 查询单个 | get | `getById()` |
-| 查询列表 | list | `listUsers()` |
-| 分页查询 | page | `pageUsers()` |
-| 新增 | save/add | `saveUser()` |
-| 更新 | update | `updateUser()` |
-| 删除 | remove/delete | `removeById()` |
-| 统计 | count | `countUsers()` |
-| 判断存在 | exists | `existsByUsername()` |
+| 动作     | 前缀          | 示例                 |
+| -------- | ------------- | -------------------- |
+| 查询单个 | get           | `getById()`          |
+| 查询列表 | list          | `listUsers()`        |
+| 分页查询 | page          | `pageUsers()`        |
+| 新增     | save/add      | `saveUser()`         |
+| 更新     | update        | `updateUser()`       |
+| 删除     | remove/delete | `removeById()`       |
+| 统计     | count         | `countUsers()`       |
+| 判断存在 | exists        | `existsByUsername()` |
 
 ### 变量命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 成员变量 | camelCase | `userService` |
-| 常量 | UPPER_SNAKE_CASE | `MAX_SIZE` |
-| 私有变量 | _ 前缀或无前缀 | `_internalState` |
-| 布尔值 | is/has/can 前缀 | `isDeleted`, `hasPermission` |
+| 类型     | 规范             | 示例                         |
+| -------- | ---------------- | ---------------------------- |
+| 成员变量 | camelCase        | `userService`                |
+| 常量     | UPPER_SNAKE_CASE | `MAX_SIZE`                   |
+| 私有变量 | \_ 前缀或无前缀  | `_internalState`             |
+| 布尔值   | is/has/can 前缀  | `isDeleted`, `hasPermission` |
 
 ---
 
@@ -144,16 +142,16 @@ src/main/java/com/youlai/
 
 ### 标准 CRUD 路径
 
-| 操作 | 方法 | 路径 |
-|------|------|------|
-| 分页列表 | GET | `/api/v1/users/page` |
-| 详情 | GET | `/api/v1/users/{id}` |
-| 新增 | POST | `/api/v1/users` |
-| 更新 | PUT | `/api/v1/users` |
-| 删除 | DELETE | `/api/v1/users/{id}` |
-| 批量删除 | DELETE | `/api/v1/users/batch` |
-| 下拉选项 | GET | `/api/v1/users/options` |
-| 表单数据 | GET | `/api/v1/users/{id}/form` |
+| 操作     | 方法   | 路径                      |
+| -------- | ------ | ------------------------- |
+| 分页列表 | GET    | `/api/v1/users/page`      |
+| 详情     | GET    | `/api/v1/users/{id}`      |
+| 新增     | POST   | `/api/v1/users`           |
+| 更新     | PUT    | `/api/v1/users`           |
+| 删除     | DELETE | `/api/v1/users/{id}`      |
+| 批量删除 | DELETE | `/api/v1/users/batch`     |
+| 下拉选项 | GET    | `/api/v1/users/options`   |
+| 表单数据 | GET    | `/api/v1/users/{id}/form` |
 
 ### Controller 模板
 
@@ -454,12 +452,12 @@ public class UserServiceImpl implements UserService {
 ```yaml
 security:
   session:
-    mode: jwt  # 或 redis-token
+    mode: jwt # 或 redis-token
     jwt:
       secret: SecretKey012345678901234567890123456789
       issuer: youlai-boot
-    access-token-ttl: 7200      # 2小时
-    refresh-token-ttl: 604800   # 7天
+    access-token-ttl: 7200 # 2小时
+    refresh-token-ttl: 604800 # 7天
 ```
 
 ### Token 生成

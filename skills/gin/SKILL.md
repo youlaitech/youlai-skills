@@ -17,61 +17,100 @@ description: Gin 后端开发规范。当开发 Gin 项目、实现 REST API、G
 
 ## Part 1: 技术栈
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Go | 1.21+ | 运行环境 |
-| Gin | 1.9+ | Web 框架 |
-| GORM | 1.25+ | ORM 框架 |
-| MySQL | 8.0+ | 数据库 |
-| Redis | 7.0+ | 缓存 |
-| JWT | - | Token 认证 |
-| Swagger | - | API 文档 |
+- **Go** - 运行环境
+- **Gin** - Web 框架
+- **GORM** - ORM 框架
+- **MySQL** - 数据库
+- **Redis** - 缓存
+- **JWT** - Token 认证
+- **Swagger** - API 文档
+- **zap/logrus** - 结构化日志
 
 ---
 
 ## Part 2: 目录结构
 
+遵循 [Standard Go Project Layout](https://github.com/golang-standards/project-layout) 社区标准。
+
+> **简单单体项目**：`main.go` 可直接放根目录，无需 `cmd/` 目录。`cmd/` 适用于多入口项目（如同时有 API 服务、CLI 工具、定时任务）。
+
 ```
-├── api/                        # API 定义
-│   └── v1/
-│       ├── user.go
-│       └── auth.go
-├── config/                     # 配置
-│   ├── config.go
-│   └── config.yaml
-├── docs/                       # Swagger 文档
-├── internal/                   # 内部模块
-│   ├── middleware/             # 中间件
-│   │   ├── jwt.go
-│   │   ├── permission.go
-│   │   └── cors.go
-│   ├── model/                  # 模型
+├── main.go                     # 程序入口（简单单体项目放根目录）
+├── internal/                   # 私有代码（Go 编译器强制不可被外部导入）
+│   ├── app/                    # 应用层
+│   │   └── myapp/
+│   │       ├── handler/        # HTTP 处理器（Controller）
+│   │       │   ├── user.go
+│   │       │   └── auth.go
+│   │       └── router/         # 路由注册
+│   │           └── router.go
+│   ├── domain/                 # 领域层
 │   │   ├── entity/             # 实体
 │   │   │   ├── base.go
 │   │   │   └── user.go
-│   │   ├── dto/                # DTO
+│   │   ├── dto/                # 数据传输对象
 │   │   │   ├── user_dto.go
 │   │   │   └── page_dto.go
-│   │   └── vo/                 # VO
+│   │   └── vo/                 # 视图对象
 │   │       └── user_vo.go
-│   ├── repository/             # 数据访问层
-│   │   └── user_repo.go
-│   ├── service/                # 业务逻辑层
-│   │   └── user_service.go
-│   └── router/                 # 路由
-│       └── router.go
-├── pkg/                        # 公共包
-│   ├── response/               # 响应
+│   ├── infra/                  # 基础设施层
+│   │   ├── repository/         # 数据访问
+│   │   │   └── user_repo.go
+│   │   ├── middleware/         # 中间件
+│   │   │   ├── jwt.go
+│   │   │   ├── permission.go
+│   │   │   └── cors.go
+│   │   └── persistence/        # 持久化配置
+│   │       └── mysql.go
+│   └── service/                # 业务逻辑层
+│       └── user_service.go
+├── pkg/                        # 公共库（可被外部项目导入）
+│   ├── response/               # 统一响应
 │   │   └── result.go
-│   ├── auth/                   # 认证
+│   ├── auth/                   # 认证工具
 │   │   └── jwt.go
-│   ├── cache/                  # 缓存
+│   ├── cache/                  # 缓存封装
 │   │   └── redis.go
-│   └── utils/                  # 工具
+│   ├── errs/                   # 错误定义
+│   │   └── errs.go
+│   └── utils/                  # 通用工具
 │       └── bcrypt.go
-├── main.go                     # 入口
-└── go.mod
+├── api/                        # Swagger 文档（swag init -o api 生成）
+│   ├── docs.go
+│   ├── swagger.json
+│   └── swagger.yaml
+├── configs/                    # 配置文件模板或默认配置
+│   └── config.yaml
+├── docker/                     # Docker 配置
+│   └── docker-compose.yml
+├── sql/                        # 数据库脚本
+│   └── mysql/
+│       └── schema.sql
+├── go.mod
+└── go.sum
 ```
+
+### 目录说明
+
+| 目录           | 用途                                  | 规则                         |
+| -------------- | ------------------------------------- | ---------------------------- |
+| `/cmd`         | 主干程序入口                          | 每个应用一个子目录，代码精简 |
+| `/internal`    | 私有代码                              | Go 编译器强制不可被外部导入  |
+| `/pkg`         | 公共库                                | 可被外部项目导入使用         |
+| `/api`         | API 定义（OpenAPI/Swagger、协议定义） | 存放接口规范文件             |
+| `/configs`     | 配置文件模板或默认配置                | 不含敏感信息                 |
+| `/scripts`     | 构建、安装、分析脚本                  | 保持 Makefile 简洁           |
+| `/build`       | 打包和 CI 配置                        | Docker、OS 包配置            |
+| `/deployments` | 部署配置                              | IaaS/PaaS/K8s 配置           |
+| `/test`        | 额外测试应用和测试数据                | 大项目可设 data 子目录       |
+| `/docs`        | 设计和用户文档                        | 除 godoc 外的文档            |
+| `/tools`       | 项目支持工具                          | 可导入 internal/pkg          |
+
+### 禁止使用的目录
+
+| 目录   | 原因                       |
+| ------ | -------------------------- |
+| `/src` | Java 风格，Go 项目不应使用 |
 
 ---
 
@@ -79,44 +118,44 @@ description: Gin 后端开发规范。当开发 Gin 项目、实现 REST API、G
 
 ### 文件命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 控制器 | 小写 + _ | `user.go` |
-| 服务 | 小写 + _service | `user_service.go` |
-| 仓库 | 小写 + _repo | `user_repo.go` |
-| 实体 | 小写 | `user.go` |
-| DTO | 小写 + _dto | `user_dto.go` |
-| VO | 小写 + _vo | `user_vo.go` |
+| 类型   | 规范             | 示例              |
+| ------ | ---------------- | ----------------- |
+| 控制器 | 小写 + \_        | `user.go`         |
+| 服务   | 小写 + \_service | `user_service.go` |
+| 仓库   | 小写 + \_repo    | `user_repo.go`    |
+| 实体   | 小写             | `user.go`         |
+| DTO    | 小写 + \_dto     | `user_dto.go`     |
+| VO     | 小写 + \_vo      | `user_vo.go`      |
 
 ### 结构体命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 实体 | PascalCase | `User` 或 `SysUser` |
-| DTO | 功能 + DTO | `UserForm`, `UserPageQuery` |
-| VO | 功能 + VO | `UserVO` |
-| Service | 实体 + Service | `UserService` |
-| Repository | 实体 + Repo | `UserRepo` |
+| 类型       | 规范           | 示例                        |
+| ---------- | -------------- | --------------------------- |
+| 实体       | PascalCase     | `User` 或 `SysUser`         |
+| DTO        | 功能 + DTO     | `UserForm`, `UserPageQuery` |
+| VO         | 功能 + VO      | `UserVO`                    |
+| Service    | 实体 + Service | `UserService`               |
+| Repository | 实体 + Repo    | `UserRepo`                  |
 
 ### 方法命名
 
-| 动作 | 前缀 | 示例 |
-|------|------|------|
-| 查询单个 | Get | `GetByID()` |
-| 查询列表 | List | `ListUsers()` |
-| 分页查询 | Page | `PageUsers()` |
-| 新增 | Create | `CreateUser()` |
-| 更新 | Update | `UpdateUser()` |
-| 删除 | Delete | `DeleteByID()` |
+| 动作     | 前缀   | 示例           |
+| -------- | ------ | -------------- |
+| 查询单个 | Get    | `GetByID()`    |
+| 查询列表 | List   | `ListUsers()`  |
+| 分页查询 | Page   | `PageUsers()`  |
+| 新增     | Create | `CreateUser()` |
+| 更新     | Update | `UpdateUser()` |
+| 删除     | Delete | `DeleteByID()` |
 
 ### 变量命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 变量 | camelCase | `userList` |
-| 常量 | PascalCase 或 UPPER_SNAKE_CASE | `MaxSize` 或 `MAX_SIZE` |
-| 私有变量 | 小写开头 | `internalState` |
-| 布尔值 | Is/Has/Can 前缀 | `IsDeleted`, `HasPermission` |
+| 类型     | 规范                           | 示例                         |
+| -------- | ------------------------------ | ---------------------------- |
+| 变量     | camelCase                      | `userList`                   |
+| 常量     | PascalCase 或 UPPER_SNAKE_CASE | `MaxSize` 或 `MAX_SIZE`      |
+| 私有变量 | 小写开头                       | `internalState`              |
+| 布尔值   | Is/Has/Can 前缀                | `IsDeleted`, `HasPermission` |
 
 ---
 
@@ -124,15 +163,15 @@ description: Gin 后端开发规范。当开发 Gin 项目、实现 REST API、G
 
 ### 标准 CRUD 路径
 
-| 操作 | 方法 | 路径 |
-|------|------|------|
-| 分页列表 | GET | `/api/v1/users/page` |
-| 详情 | GET | `/api/v1/users/:id` |
-| 新增 | POST | `/api/v1/users` |
-| 更新 | PUT | `/api/v1/users` |
-| 删除 | DELETE | `/api/v1/users/:id` |
-| 批量删除 | DELETE | `/api/v1/users/batch` |
-| 下拉选项 | GET | `/api/v1/users/options` |
+| 操作     | 方法   | 路径                    |
+| -------- | ------ | ----------------------- |
+| 分页列表 | GET    | `/api/v1/users/page`    |
+| 详情     | GET    | `/api/v1/users/:id`     |
+| 新增     | POST   | `/api/v1/users`         |
+| 更新     | PUT    | `/api/v1/users`         |
+| 删除     | DELETE | `/api/v1/users/:id`     |
+| 批量删除 | DELETE | `/api/v1/users/batch`   |
+| 下拉选项 | GET    | `/api/v1/users/options` |
 
 ### Controller 模板
 
@@ -557,7 +596,233 @@ func SetupRouter() *gin.Engine {
 
 ---
 
-## Part 10: 代码质量检查清单
+## Part 10: 错误处理规范
+
+### 统一错误处理机制
+
+使用 `c.Error(err)` 配合全局错误处理中间件，统一返回错误响应。
+
+```go
+// pkg/errs/errs.go
+package errs
+
+import (
+    "net/http"
+    "youlai-gin/pkg/constant"
+)
+
+type AppError struct {
+    Code       string `json:"code"`
+    Msg        string `json:"msg"`
+    HTTPStatus int    `json:"-"`
+    Err        error  `json:"-"`
+}
+
+func BadRequest(msg string) *AppError {
+    return &AppError{
+        Code:       constant.CodeBadRequest,
+        Msg:        msg,
+        HTTPStatus: http.StatusBadRequest,
+    }
+}
+
+func SystemError(msg string) *AppError {
+    return &AppError{
+        Code:       constant.CodeSystemError,
+        Msg:        msg,
+        HTTPStatus: http.StatusInternalServerError,
+    }
+}
+
+func NotFound(msg string) *AppError {
+    return &AppError{
+        Code:       constant.CodeBadRequest,
+        Msg:        msg,
+        HTTPStatus: http.StatusBadRequest,
+    }
+}
+
+func Unauthorized(msg string) *AppError {
+    return &AppError{
+        Code:       constant.CodeAccessUnauthorized,
+        Msg:        msg,
+        HTTPStatus: http.StatusUnauthorized,
+    }
+}
+```
+
+### 错误处理中间件
+
+```go
+// pkg/middleware/error_handler.go
+package middleware
+
+import (
+    "github.com/gin-gonic/gin"
+    "youlai-gin/pkg/errs"
+    "youlai-gin/pkg/response"
+)
+
+func ErrorHandler() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        c.Next()
+
+        if len(c.Errors) > 0 {
+            err := c.Errors.Last().Err
+            if appErr, ok := err.(*errs.AppError); ok {
+                response.FromAppError(c, appErr)
+            } else {
+                response.Fail(c, "系统错误")
+            }
+        }
+    }
+}
+```
+
+### Handler 错误处理规范
+
+**禁止**直接使用 `response.Fail(c, "参数错误")`，应使用 `c.Error(errs.BadRequest("具体错误信息"))`。
+
+```go
+// 正确示例
+func GetUserForm(c *gin.Context) {
+    userIdStr := c.Param("userId")
+    userId, err := strconv.ParseInt(userIdStr, 10, 64)
+    if err != nil {
+        c.Error(errs.BadRequest("无效的用户ID"))
+        return
+    }
+    // ...
+}
+
+// 错误示例
+func GetUserForm(c *gin.Context) {
+    userIdStr := c.Param("userId")
+    userId, _ := strconv.ParseInt(userIdStr, 10, 64)  // 禁止忽略错误
+    // ...
+}
+```
+
+### 参数校验规范
+
+使用 `validator.BindQuery/BindJSON` 统一参数校验，禁止直接使用 `c.ShouldBindQuery/ShouldBindJSON`。
+
+```go
+// pkg/validator/validator.go
+package validator
+
+import (
+    "github.com/gin-gonic/gin"
+    "youlai-gin/pkg/errs"
+)
+
+func BindQuery(c *gin.Context, obj interface{}) *errs.AppError {
+    if err := c.ShouldBindQuery(obj); err != nil {
+        return errs.BadRequest("参数格式错误: " + err.Error())
+    }
+    return nil
+}
+
+func BindJSON(c *gin.Context, obj interface{}) *errs.AppError {
+    if err := c.ShouldBindJSON(obj); err != nil {
+        return errs.BadRequest("请求体格式错误: " + err.Error())
+    }
+    return nil
+}
+```
+
+```go
+// Handler 使用示例
+func GetUserList(c *gin.Context) {
+    var query api.UserQueryReq
+    if err := validator.BindQuery(c, &query); err != nil {
+        c.Error(err)
+        return
+    }
+    // ...
+}
+```
+
+### 必填参数校验
+
+Handler 层应对必填参数进行显式校验：
+
+```go
+func SendMobileCode(c *gin.Context) {
+    mobile := c.Query("mobile")
+    if mobile == "" {
+        c.Error(errs.BadRequest("手机号不能为空"))
+        return
+    }
+    // ...
+}
+```
+
+### 文件上传限制
+
+文件上传必须校验大小和类型：
+
+```go
+const (
+    maxUploadSize     = 10 << 20 // 10MB
+    allowedExcelTypes = ".xlsx"
+)
+
+func ImportUsers(c *gin.Context) {
+    file, err := c.FormFile("file")
+    if err != nil {
+        c.Error(errs.BadRequest("请选择要导入的文件"))
+        return
+    }
+
+    if file.Size > maxUploadSize {
+        c.Error(errs.BadRequest("文件大小不能超过10MB"))
+        return
+    }
+
+    if !isExcelFile(file.Filename) {
+        c.Error(errs.BadRequest("仅支持.xlsx格式的Excel文件"))
+        return
+    }
+    // ...
+}
+```
+
+### 日志规范
+
+**禁止**使用 `fmt.Printf`，应使用 `slog`：
+
+```go
+// 正确示例
+slog.Error("降级查询数据库失败", "roles", missingRoles, "error", err)
+slog.Info("短信验证码已发送", "mobile", mobile, "code", code)
+
+// 错误示例
+fmt.Printf("降级查询数据库失败，角色: %v, 错误: %v\n", missingRoles, err)
+```
+
+### 错误信息脱敏
+
+禁止向客户端返回内部错误详情：
+
+```go
+// 正确示例
+if err != nil {
+    slog.Error("获取微信会话信息失败", "code", code, "error", err)
+    return nil, errs.BadRequest("微信登录失败，请稍后重试")
+}
+
+// 错误示例
+if err != nil {
+    return nil, errs.BadRequest("微信登录失败：" + err.Error())  // 泄露内部错误
+}
+```
+
+---
+
+## Part 11: 代码质量检查清单
+
+### 基础规范
 
 - [ ] 遵循 RESTful API 路径规范
 - [ ] 使用统一响应格式
@@ -569,3 +834,295 @@ func SetupRouter() *gin.Engine {
 - [ ] API 添加 Swagger 注释
 - [ ] 分层：Controller → Service → Repository
 - [ ] 使用依赖注入
+
+### 参数与错误处理
+
+- [ ] strconv.ParseInt/Atoi 必须检查错误
+- [ ] 使用 c.Error(errs.BadRequest) 替代 response.Fail
+- [ ] 使用 validator.BindQuery/BindJSON 统一参数校验
+- [ ] 必填参数显式校验
+- [ ] 文件上传校验大小和类型
+- [ ] 错误信息脱敏，禁止返回内部错误详情
+
+### 日志规范
+
+- [ ] 使用 slog 替代 fmt.Printf
+- [ ] 使用结构化日志（zap/logrus）
+- [ ] 错误只在顶层 log 一次
+- [ ] 堆栈信息不返回给 API 调用方
+
+### 代码组织
+
+- [ ] 使用 gofmt 格式化代码
+- [ ] CI 配置 golangci-lint 检查
+- [ ] import 分组有序（标准库 → 第三方 → 内部）
+- [ ] 文件内代码布局：const/var → struct/interface → 导出方法 → 私有方法
+- [ ] 命名简洁不冗余（包名已提供上下文）
+
+### Context 与 HTTP
+
+- [ ] Context 作为函数第一个参数传入
+- [ ] HTTP 调用使用 context.WithTimeout 控制超时
+
+### 测试规范
+
+- [ ] 使用表驱动测试
+- [ ] 使用 testify 进行断言
+- [ ] 避免使用 gomock.Any()，显式指定参数
+
+---
+
+## Part 12: 编译验证
+
+修改代码后必须执行编译验证：
+
+```bash
+cd <项目目录> && go build ./...
+```
+
+确保无编译错误后再提交。
+
+---
+
+## Part 13: 最佳实践
+
+### 工具链
+
+| 工具            | 用途       | 要求                       |
+| --------------- | ---------- | -------------------------- |
+| `gofmt`         | 代码格式化 | 必须使用，消灭缩进争论     |
+| `golangci-lint` | 静态检查   | CI 必须在 lint 失败时红线  |
+| `go:generate`   | Mock 生成  | 配合 mockgen 自动生成 mock |
+
+### Import 顺序
+
+import 语句分组有序：
+
+```go
+import (
+    // 1. 标准库
+    "context"
+    "time"
+
+    // 2. 第三方库
+    "github.com/gin-gonic/gin"
+    "github.com/sirupsen/logrus"
+
+    // 3. 公司/组织内部库
+    "github.company.com/org/repo/gapi"
+
+    // 4. 本项目内部包
+    "youlai/internal/service"
+    "youlai/pkg/response"
+)
+```
+
+### 单个文件内的代码布局
+
+一个 `.go` 文件按以下顺序组织：
+
+1. `const` / `var` 定义
+2. `struct` / `interface` 定义
+3. 导出的（大写）方法
+4. 非导出的（小写）方法
+5. 辅助函数
+
+### 命名：简单、不冗余
+
+包名已提供上下文，不要在类型名里重复。
+
+```go
+// ❌ 冗余写法
+type DeploymentTransformerHandlerIntf interface{}
+type DeploymentTransformerHandler struct{}
+
+// ✅ 简洁写法
+type DeploymentTransformerIntf interface{}
+type DeploymentTransformer struct{}
+```
+
+### Context：传参，不要塞结构体
+
+永远把 `context.Context` 作为函数的第一个参数传入。
+
+```go
+// ❌ 错误做法
+type Client struct {
+    ctx context.Context
+}
+func (c *Client) DoSomething(foo string) {
+    // 用 c.ctx —— 千万别这样！
+}
+
+// ✅ 正确做法
+func (c *Client) DoSomething(ctx context.Context, foo string) {
+    // 用 ctx
+}
+```
+
+**铁律**：只要方法需要 context，一律放在第一个参数。
+
+### 函数选项模式（Functional Options）
+
+参数多时推荐使用函数选项模式，可读且灵活。
+
+```go
+// ❌ 灾难签名
+svr := server.New("localhost", 8080, time.Minute, 120)
+
+// ✅ 自解释写法
+svr := server.New(
+    server.WithHost("localhost"),
+    server.WithPort(8080),
+    server.WithTimeout(time.Minute),
+    server.WithMaxConn(120),
+)
+```
+
+后续加参数也不破坏已有调用，扩展性极强。
+
+### 错误处理：上下文才是王道
+
+#### 用堆栈 + 错误包装
+
+推荐使用 `github.com/pingcap/errors` 或 `go.uber.org/multierr`，给错误自动带上调用栈。
+
+```go
+// ❌ 层层重复 log
+if err != nil {
+    log.Errorf("ERROR :: Google Docs :: NewGoogleApiHandler :: Unable to create service :: %v", err)
+    return nil, err
+}
+
+// ✅ 优雅包装向上透传
+if err != nil {
+    return nil, fmt.Errorf("failed to create google docs service: %w", err)
+}
+```
+
+**安全红线**：堆栈信息只写日志，绝不返回给 API 调用方（泄露实现细节是安全漏洞）。
+
+#### 日志级别要分清
+
+| 级别  | 场景                        |
+| ----- | --------------------------- |
+| Error | 服务内部错误（500 场景）    |
+| Warn  | 用户/客户端错误（400 场景） |
+
+#### 错误只在顶层 log 一次
+
+层层 log 同一个错误是反模式。顶层统一 log + 带栈，干净又好 debug。
+
+### 日志：结构化 > 字符串拼接
+
+推荐用 `zap` 或 `logrus`（生产环境开 JSON 格式）。
+
+```go
+// ❌ 字符串拼接
+log.Errorf("Failed to write summary. Error: %s", err)
+
+// ✅ 结构化
+log.WithFields(log.Fields{
+    "event": event,
+    "topic": topic,
+    "key":   key,
+}).Info("processing new event")
+```
+
+结构化日志在 ELK / Loki / 阿里云 SLS 等平台上搜索、告警效率高出几个量级。
+
+#### 请求级日志（带 trace id）
+
+```go
+type Handler struct {
+    LoggerFn func(ctx context.Context) *logrus.Entry
+}
+
+func (h *Handler) CheckHealth(ctx context.Context) {
+    logger := h.LoggerFn(ctx)
+    logger.Info("health check started")
+}
+```
+
+中间件把 request-id / trace-id 塞进 context，自动带到所有日志里，实现全链路追踪。
+
+#### 可忽略的已知错误打 Debug
+
+对于可忽略的已知错误，使用 Debug 级别日志：
+
+```go
+if err != nil {
+    if errors.Is(err, ErrUserAlreadyExists) {
+        log.WithError(err).Debug("user exists, continuing")
+        return nil
+    }
+    return nil, fmt.Errorf("failed to add user %s: %w", userID, err)
+}
+```
+
+### HTTP 调用：优先用 Context 超时
+
+不要依赖 `http.Client` 的全局 Timeout，用 context 控制更精细。
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+resp, err := client.Do(req)
+```
+
+### 单元测试：表驱动测试
+
+推荐工具：`testify`（assert、require、mock）
+
+| 函数                 | 用途                       |
+| -------------------- | -------------------------- |
+| `assert.Equal`       | 基本相等断言               |
+| `assert.EqualValues` | map/slice 忽略顺序比较     |
+| `assert.EqualError`  | 简单错误比较               |
+| `assert.NoError`     | 无错误断言                 |
+| `assert.Error`       | 有错误断言                 |
+| `require.NoError`    | 无错误断言（失败立即终止） |
+
+```go
+func TestToUpper(t *testing.T) {
+    tests := []struct {
+        name     string
+        input    string
+        expected string
+        wantErr  bool
+    }{
+        {
+            name:     "正常输入",
+            input:    "hello",
+            expected: "HELLO",
+            wantErr:  false,
+        },
+        {
+            name:     "空字符串",
+            input:    "",
+            expected: "",
+            wantErr:  true,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got, err := ToUpper(tt.input)
+            if tt.wantErr {
+                assert.Error(t, err)
+                return
+            }
+            assert.NoError(t, err)
+            assert.Equal(t, tt.expected, got)
+        })
+    }
+}
+```
+
+**核心原则**：
+
+- 测试用例自己带 mock 和预期
+- 循环体只调用被测代码 + 断言，不要写额外逻辑
+- 尽量避免 gomock 的 `Any()`，显式指定更安全

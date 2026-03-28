@@ -5,6 +5,8 @@ description: ThinkPHP 后端开发规范。当开发 ThinkPHP 项目、实现 RE
 
 # ThinkPHP 后端开发规范
 
+> 参考：[ThinkPHP 8.0 开发规范](https://doc.thinkphp.cn/v8_0/development_specifications.html) | [ThinkPHP 8.0 目录结构](https://doc.thinkphp.cn/v8_0/directory_structure.html)
+
 ## 触发条件
 
 - 开发 ThinkPHP 项目
@@ -17,97 +19,107 @@ description: ThinkPHP 后端开发规范。当开发 ThinkPHP 项目、实现 RE
 
 ## Part 1: 技术栈
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| PHP | 8.2+ | 运行环境 |
-| ThinkPHP | 8.0+ | Web 框架 |
-| MySQL | 8.0+ | 数据库 |
-| Redis | 7.0+ | 缓存 |
-| firebase/php-jwt | 6.0+ | Token 认证 |
+- **PHP** - 运行环境
+- **ThinkPHP** - Web 框架
+- **MySQL** - 数据库
+- **Redis** - 缓存
+- **firebase/php-jwt** - Token 认证
 
 ---
 
 ## Part 2: 目录结构
 
+> 参考：[ThinkPHP 8.0 目录结构](https://doc.thinkphp.cn/v8_0/directory_structure.html)
+
 ```
 app/
-├── controller/                # 控制器
-│   ├── system/                # 系统模块
-│   │   ├── User.php
-│   │   ├── Role.php
-│   │   └── Menu.php
-│   └── auth/                  # 认证模块
-│       └── Auth.php
-├── model/                     # 模型
-│   ├── system/
-│   │   ├── User.php
-│   │   └── Role.php
-│   └── BaseModel.php
-├── validate/                  # 验证器
-│   └── system/
-│       └── UserValidate.php
-├── middleware/                # 中间件
-│   ├── Auth.php
-│   ├── Permission.php
-│   └── Cors.php
-├── common/                    # 公共模块
-│   ├── enum/
-│   │   └── ResultCode.php
-│   ├── trait/
-│   │   └── ResponseTrait.php
-│   └── service/
-│       ├── JwtService.php
-│       └── AuthService.php
-├── config/                    # 配置
-│   ├── database.php
-│   ├── cache.php
-│   └── jwt.php
-└── route/                     # 路由
-    └── api.php
+├─ BaseController.php          # 基础控制器类（官方推荐位置）
+├─ ExceptionHandle.php         # 应用异常处理
+├─ common.php                  # 全局公共函数
+├─ middleware.php              # 全局中间件定义
+├─ provider.php                # 服务提供定义
+├─ event.php                   # 全局事件定义
+│
+├─ auth/                       # 认证模块（目录使用小写）
+│  ├─ controller/              # 控制器目录
+│  ├─ service/                 # 服务目录
+│  └─ validate/                # 验证器目录
+│
+├─ system/                     # 系统模块（目录使用小写）
+│  ├─ controller/              # 控制器目录
+│  ├─ service/                 # 服务目录
+│  ├─ model/                   # 模型目录
+│  └─ validate/                # 验证器目录
+│
+├─ file/                       # 文件模块
+├─ codegen/                    # 代码生成模块
+│
+├─ common/                     # 公共代码（非模块）
+│  ├─ constants/               # 常量定义
+│  ├─ enums/                   # 枚举类
+│  ├─ exception/               # 异常类
+│  ├─ redis/                   # Redis 工具
+│  ├─ security/                # 认证/权限
+│  ├─ util/                    # 工具类
+│  └─ web/                     # Web 相关
+│
+├─ middleware/                 # 全局中间件
+├─ traits/                     # 复用特性
+└─ websocket/                  # WebSocket
 ```
 
 ---
 
 ## Part 3: 命名规范
 
-### 文件命名
+> 参考：[ThinkPHP 8.0 开发规范](https://doc.thinkphp.cn/v8_0/development_specifications.html)
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 控制器 | PascalCase | `User.php` |
-| 模型 | PascalCase | `User.php` |
-| 验证器 | PascalCase + Validate | `UserValidate.php` |
-| 中间件 | PascalCase | `Auth.php` |
-| 配置 | snake_case | `database.php` |
+### 目录和文件
+
+| 规则 | 示例 |
+| --- | --- |
+| 目录使用小写+下划线 | `controller/`, `user_service/` |
+| 类库、函数文件统一以 `.php` 为后缀 | `UserController.php` |
+| 类的文件名与命名空间路径一致 | `app\system\controller\UserController` → `app/system/controller/UserController.php` |
+| 类文件采用驼峰法命名（首字母大写） | `UserController.php`, `UserType.php` |
+| 其它文件采用小写+下划线命名 | `common.php`, `route.php` |
 
 ### 类命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 控制器 | PascalCase | `User` |
-| 模型 | PascalCase | `User` 或 `SysUser` |
-| 验证器 | 功能 + Validate | `UserValidate` |
-| 中间件 | PascalCase | `Auth` |
+| 规则                         | 示例                                       |
+| ---------------------------- | ------------------------------------------ |
+| 类名采用驼峰法（首字母大写） | `User`, `UserType`, `UserController`       |
+| 类名与文件名保持一致         | `UserController` 类 → `UserController.php` |
 
-### 方法命名
+### 方法和属性命名
 
-| 动作 | 前缀 | 示例 |
-|------|------|------|
-| 查询单个 | get | `getById()` |
-| 查询列表 | list | `listUsers()` |
-| 分页查询 | page | `pageUsers()` |
-| 新增 | create | `createUser()` |
-| 更新 | update | `updateUser()` |
-| 删除 | delete | `deleteUser()` |
+| 规则                         | 示例                             |
+| ---------------------------- | -------------------------------- |
+| 方法采用驼峰法（首字母小写） | `getUserName()`, `getUserById()` |
+| 属性采用驼峰法（首字母小写） | `$tableName`, `$instance`        |
+| 魔术方法以双下划线开头       | `__call()`, `__autoload()`       |
 
-### 变量命名
+### 函数命名
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 变量 | camelCase | `$userList` |
-| 常量 | UPPER_SNAKE_CASE | `MAX_SIZE` |
-| 私有变量 | _ 前缀 | `$_internalState` |
-| 布尔值 | is/has/can 前缀 | `$isDeleted`, `$hasPermission` |
+| 规则                     | 示例                                 |
+| ------------------------ | ------------------------------------ |
+| 函数使用小写字母和下划线 | `get_client_ip()`, `array_to_tree()` |
+
+### 常量和配置
+
+| 类型     | 规则             | 示例                          |
+| -------- | ---------------- | ----------------------------- |
+| 常量     | 大写字母和下划线 | `APP_PATH`, `HAS_ONE`         |
+| 配置参数 | 小写字母和下划线 | `url_route_on`, `url_convert` |
+| 环境变量 | 大写字母和下划线 | `APP_DEBUG`, `DB_HOST`        |
+
+### 数据表和字段
+
+| 规则                   | 示例                        |
+| ---------------------- | --------------------------- |
+| 数据表采用小写+下划线  | `sys_user`, `sys_role_menu` |
+| 字段采用小写+下划线    | `user_name`, `created_at`   |
+| 禁止使用驼峰和中文命名 | ❌ `userName`, ❌ `用户表`  |
 
 ---
 
@@ -115,38 +127,41 @@ app/
 
 ### 标准 CRUD 路径
 
-| 操作 | 方法 | 路径 |
-|------|------|------|
-| 分页列表 | GET | `/api/v1/users/page` |
-| 详情 | GET | `/api/v1/users/:id` |
-| 新增 | POST | `/api/v1/users` |
-| 更新 | PUT | `/api/v1/users` |
-| 删除 | DELETE | `/api/v1/users/:id` |
-| 批量删除 | DELETE | `/api/v1/users/batch` |
-| 下拉选项 | GET | `/api/v1/users/options` |
+| 操作     | 方法   | 路径                    |
+| -------- | ------ | ----------------------- |
+| 分页列表 | GET    | `/api/v1/users/page`    |
+| 详情     | GET    | `/api/v1/users/:id`     |
+| 新增     | POST   | `/api/v1/users`         |
+| 更新     | PUT    | `/api/v1/users`         |
+| 删除     | DELETE | `/api/v1/users/:id`     |
+| 批量删除 | DELETE | `/api/v1/users/batch`   |
+| 下拉选项 | GET    | `/api/v1/users/options` |
 
 ### Controller 模板
 
 ```php
 <?php
-namespace app\controller\system;
+declare(strict_types=1);
+
+namespace app\system\controller;
 
 use app\BaseController;
-use app\model\system\User;
-use app\validate\system\UserValidate;
-use app\common\trait\ResponseTrait;
+use app\system\model\User;
+use app\system\validate\UserValidate;
+use app\common\exception\BusinessException;
+use app\common\web\ResultCode;
 use think\facade\Request;
 
-class User extends BaseController
+final class UserController extends BaseController
 {
-    use ResponseTrait;
+    protected bool $requireAuth = true;
 
     /**
      * 用户分页列表
      */
     public function page()
     {
-        $params = Request::get();
+        $params = $this->request->get();
         $result = User::where(function ($query) use ($params) {
             if (!empty($params['keywords'])) {
                 $query->whereLike('username|nickname', $params['keywords']);
@@ -161,7 +176,7 @@ class User extends BaseController
             'list_rows' => $params['pageSize'] ?? 20,
         ]);
 
-        return $this->pageResult($result->items(), $result->total());
+        return $this->successPaginate($result->items(), $result->total());
     }
 
     /**
@@ -171,7 +186,7 @@ class User extends BaseController
     {
         $user = User::find($id);
         if (!$user) {
-            return $this->error('用户不存在');
+            throw new BusinessException(ResultCode::USER_ERROR);
         }
         return $this->success($user->toArray());
     }
@@ -181,12 +196,12 @@ class User extends BaseController
      */
     public function create()
     {
-        $params = Request::post();
-        validate(UserValidate::class)->scene('create')->check($params);
+        $params = $this->request->post();
+        $this->validate($params, UserValidate::class, 'create');
 
         // 检查用户名是否存在
         if (User::where('username', $params['username'])->find()) {
-            return $this->error('用户名已存在');
+            throw new BusinessException(ResultCode::USER_ERROR, '用户名已存在');
         }
 
         $user = new User();
@@ -206,12 +221,12 @@ class User extends BaseController
      */
     public function update()
     {
-        $params = Request::put();
-        validate(UserValidate::class)->scene('update')->check($params);
+        $params = $this->request->put();
+        $this->validate($params, UserValidate::class, 'update');
 
         $user = User::find($params['id']);
         if (!$user) {
-            return $this->error('用户不存在');
+            throw new BusinessException(ResultCode::USER_ERROR);
         }
 
         $user->nickname = $params['nickname'];
@@ -230,7 +245,7 @@ class User extends BaseController
     {
         $user = User::find($id);
         if (!$user) {
-            return $this->error('用户不存在');
+            throw new BusinessException(ResultCode::USER_ERROR);
         }
         $user->delete();
         return $this->success();
@@ -241,7 +256,7 @@ class User extends BaseController
      */
     public function batchDelete()
     {
-        $ids = Request::delete('ids');
+        $ids = $this->request->delete('ids');
         User::destroy($ids);
         return $this->success();
     }
@@ -261,49 +276,96 @@ class User extends BaseController
 
 ## Part 5: 响应格式
 
+> 参考：[接口协议](/reference/api-specification)
+
 ```php
 <?php
-namespace app\common\trait;
+declare(strict_types=1);
 
-trait ResponseTrait
+namespace app\common\web;
+
+use think\response\Json;
+
+class Result
 {
-    /**
-     * 成功响应
-     */
-    protected function success($data = null, string $msg = '操作成功')
+    public static function success(mixed $data = null, string $msg = '成功'): array
     {
-        return json([
-            'code' => 200,
+        return [
+            'code' => '00000',
             'msg' => $msg,
             'data' => $data,
-        ]);
+        ];
     }
 
-    /**
-     * 分页响应
-     */
-    protected function pageResult($list, int $total, string $msg = '操作成功')
+    public static function page(array $list, int $total): array
     {
-        return json([
-            'code' => 200,
-            'msg' => $msg,
+        return [
+            'code' => '00000',
+            'msg' => '成功',
             'data' => [
                 'list' => $list,
                 'total' => $total,
             ],
-        ]);
+        ];
     }
 
-    /**
-     * 错误响应
-     */
-    protected function error(string $msg = '操作失败', int $code = 400)
+    public static function failedWith(ResultCode $code, string $msg = ''): array
     {
-        return json([
-            'code' => $code,
-            'msg' => $msg,
+        return [
+            'code' => $code->value,
+            'msg' => $msg ?: $code->getMsg(),
             'data' => null,
-        ]);
+        ];
+    }
+}
+```
+
+### BaseController 响应方法
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace app;
+
+use app\common\web\Result;
+use app\common\web\ResultCode;
+use think\App;
+use think\response\Json;
+
+abstract class BaseController
+{
+    protected App $app;
+    protected $request;
+    protected bool $requireAuth = false;
+
+    public function __construct(App $app)
+    {
+        $this->app = $app;
+        $this->request = $app->request;
+        $this->initialize();
+    }
+
+    protected function initialize(): void
+    {
+        if ($this->requireAuth && $this->getAuthUserId() <= 0) {
+            throw new BusinessException(ResultCode::ACCESS_TOKEN_INVALID);
+        }
+    }
+
+    protected function success(mixed $data = null, string $msg = ''): Json
+    {
+        return json(Result::success($data, $msg ?: ResultCode::SUCCESS->getMsg()));
+    }
+
+    protected function successPaginate(array $list, int $total): Json
+    {
+        return json(Result::page($list, $total));
+    }
+
+    protected function fail(ResultCode $code, string $msg = ''): Json
+    {
+        return json(Result::failedWith($code, $msg));
     }
 }
 ```
@@ -316,7 +378,9 @@ trait ResponseTrait
 
 ```php
 <?php
-namespace app\model;
+declare(strict_types=1);
+
+namespace app\common\model;
 
 use think\Model;
 
@@ -326,19 +390,17 @@ class BaseModel extends Model
     protected $createTime = 'create_time';
     protected $updateTime = 'update_time';
 
-    // 软删除
     use \think\model\concern\SoftDelete;
     protected $deleteTime = 'delete_time';
     protected $defaultSoftDelete = 0;
 
-    // 全局作用域：自动填充创建人/更新人
-    public static function onBeforeInsert($model)
+    public static function onBeforeInsert($model): void
     {
         $model->create_by = request()->userId ?? 0;
         $model->update_by = request()->userId ?? 0;
     }
 
-    public static function onBeforeUpdate($model)
+    public static function onBeforeUpdate($model): void
     {
         $model->update_by = request()->userId ?? 0;
     }
@@ -349,19 +411,19 @@ class BaseModel extends Model
 
 ```php
 <?php
-namespace app\model\system;
+declare(strict_types=1);
 
-use app\model\BaseModel;
+namespace app\system\model;
 
-class User extends BaseModel
+use app\common\model\BaseModel;
+
+final class User extends BaseModel
 {
     protected $name = 'sys_user';
     protected $pk = 'id';
 
-    // 隐藏字段
     protected $hidden = ['password', 'delete_time'];
 
-    // 类型转换
     protected $type = [
         'id' => 'integer',
         'status' => 'integer',
@@ -369,13 +431,11 @@ class User extends BaseModel
         'update_time' => 'datetime',
     ];
 
-    // 关联部门
     public function dept()
     {
         return $this->belongsTo(Dept::class, 'dept_id');
     }
 
-    // 关联角色
     public function roles()
     {
         return $this->belongsToMany(Role::class, UserRole::class, 'role_id', 'user_id');
@@ -393,27 +453,27 @@ use think\facade\Route;
 
 // 认证接口（无需登录）
 Route::group('api/v1/auth', function () {
-    Route::post('login', 'auth.Auth/login');
-    Route::post('logout', 'auth.Auth/logout');
-    Route::post('refresh-token', 'auth.Auth/refreshToken');
+    Route::post('login', 'auth.controller.AuthController/login');
+    Route::post('logout', 'auth.controller.AuthController/logout');
+    Route::post('refresh-token', 'auth.controller.AuthController/refreshToken');
 })->allowCrossDomain();
 
 // 需要登录的接口
 Route::group('api/v1', function () {
     // 用户管理
     Route::group('users', function () {
-        Route::get('page', 'system.User/page');
-        Route::get(':id', 'system.User/detail');
-        Route::get('options', 'system.User/options');
-        Route::post('', 'system.User/create');
-        Route::put('', 'system.User/update');
-        Route::delete(':id', 'system.User/delete');
-        Route::delete('batch', 'system.User/batchDelete');
+        Route::get('page', 'system.controller.UserController/page');
+        Route::get(':id', 'system.controller.UserController/detail');
+        Route::get('options', 'system.controller.UserController/options');
+        Route::post('', 'system.controller.UserController/create');
+        Route::put('', 'system.controller.UserController/update');
+        Route::delete(':id', 'system.controller.UserController/delete');
+        Route::delete('batch', 'system.controller.UserController/batchDelete');
     });
 
     // 角色管理
     Route::group('roles', function () {
-        Route::get('page', 'system.Role/page');
+        Route::get('page', 'system.controller.RoleController/page');
         // ...
     });
 })->middleware(\app\middleware\Auth::class)
@@ -428,29 +488,25 @@ Route::group('api/v1', function () {
 
 ```php
 <?php
-namespace app\common\service;
+declare(strict_types=1);
+
+namespace app\common\security;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use think\facade\Config;
 
-class JwtService
+final class JwtService
 {
-    /**
-     * 生成 Access Token
-     */
     public static function generateAccessToken(array $payload): string
     {
         $payload['exp'] = time() + Config::get('jwt.access_ttl', 7200);
         $payload['iat'] = time();
         $payload['iss'] = Config::get('jwt.issuer', 'youlai-think');
-        
+
         return JWT::encode($payload, Config::get('jwt.secret'), 'HS256');
     }
 
-    /**
-     * 解析 Token
-     */
     public static function parseToken(string $token): ?array
     {
         try {
@@ -461,9 +517,6 @@ class JwtService
         }
     }
 
-    /**
-     * 生成 Refresh Token
-     */
     public static function generateRefreshToken(int $userId): string
     {
         return JWT::encode([
@@ -479,14 +532,18 @@ class JwtService
 
 ```php
 <?php
+declare(strict_types=1);
+
 namespace app\middleware;
 
-use app\common\service\JwtService;
+use app\common\security\JwtService;
+use app\common\web\ResultCode;
+use app\common\web\Result;
 use Closure;
 use think\Request;
 use think\Response;
 
-class Auth
+final class Auth
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -494,23 +551,14 @@ class Auth
         $token = str_replace('Bearer ', '', $token);
 
         if (empty($token)) {
-            return json([
-                'code' => 401,
-                'msg' => '未登录或token过期',
-                'data' => null,
-            ]);
+            return json(Result::failedWith(ResultCode::ACCESS_TOKEN_INVALID));
         }
 
         $payload = JwtService::parseToken($token);
         if (!$payload) {
-            return json([
-                'code' => 401,
-                'msg' => '未登录或token过期',
-                'data' => null,
-            ]);
+            return json(Result::failedWith(ResultCode::ACCESS_TOKEN_INVALID));
         }
 
-        // 注入用户信息到请求
         $request->userId = $payload['sub'];
         $request->username = $payload['username'] ?? '';
 
@@ -525,11 +573,13 @@ class Auth
 
 ```php
 <?php
-namespace app\validate\system;
+declare(strict_types=1);
+
+namespace app\system\validate;
 
 use think\Validate;
 
-class UserValidate extends Validate
+final class UserValidate extends Validate
 {
     protected $rule = [
         'id' => 'require|integer',
@@ -562,13 +612,25 @@ class UserValidate extends Validate
 
 ## Part 10: 代码质量检查清单
 
+- [ ] 目录使用小写+下划线
+- [ ] 类名采用驼峰法（首字母大写）
+- [ ] 方法采用驼峰法（首字母小写）
+- [ ] 数据表和字段采用小写+下划线
 - [ ] 遵循 RESTful API 路径规范
-- [ ] 使用统一响应格式
+- [ ] 使用统一响应格式（Result/ResultCode）
 - [ ] 模型继承 BaseModel
 - [ ] 使用软删除
-- [ ] 分页接口使用 pageResult
+- [ ] 分页接口使用 successPaginate
 - [ ] 使用验证器校验参数
 - [ ] 路由显式映射
 - [ ] 中间件实现认证
-- [ ] 配置文件管理配置
-- [ ] 使用 trait 复用代码
+
+---
+
+## 参考资料
+
+- [ThinkPHP 8.0 开发规范](https://doc.thinkphp.cn/v8_0/development_specifications.html)
+- [ThinkPHP 8.0 目录结构](https://doc.thinkphp.cn/v8_0/directory_structure.html)
+- [PSR-2 编码风格规范](https://www.php-fig.org/psr/psr-2/)
+- [PSR-4 自动加载规范](https://www.php-fig.org/psr/psr-4/)
+- [PHP 保留字列表](http://php.net/manual/zh/reserved.keywords.php)
