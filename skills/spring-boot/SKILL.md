@@ -1,17 +1,17 @@
 ---
 name: spring-boot
-description: Spring Boot 后端开发规范。当开发 Spring Boot 项目、实现 REST API、MyBatis-Plus 数据访问、权限认证、JWT/Redis Token 时使用此 skill。
+description: Spring Boot backend development standards. Use this skill when developing Spring Boot projects, implementing REST APIs, MyBatis-Plus data access, authentication, or JWT/Redis token management.
 ---
 
 # Spring Boot 后端开发规范
 
 ## 触发条件
 
-- 开发 Spring Boot 项目
-- 实现 REST API
-- 使用 MyBatis-Plus 数据访问
-- 实现 JWT/Redis Token 认证
-- 实现权限控制
+- Develop Spring Boot projects
+- Implement REST APIs
+- Use MyBatis-Plus for data access
+- Implement JWT/Redis Token authentication
+- Implement permission control
 
 ---
 
@@ -30,66 +30,162 @@ description: Spring Boot 后端开发规范。当开发 Spring Boot 项目、实
 ## Part 2: 目录结构
 
 ```
-src/main/java/com/youlai/
-├── common/                     # 公共模块
-│   ├── annotation/             # 自定义注解
-│   │   ├── RepeatSubmit.java
-│   │   └── DataScope.java
-│   ├── aspect/                 # 切面
-│   │   └── LogAspect.java
-│   ├── config/                 # 配置类
-│   │   ├── MybatisPlusConfig.java
-│   │   ├── RedisConfig.java
-│   │   └── SecurityConfig.java
-│   ├── constant/               # 常量
+src/main/java/com/youlai/boot/
+├── YouLaiBootApplication.java      # 启动类（@EnableScheduling）
+│
+├── common/                         # 公共模块
+│   ├── annotation/                 # 自定义注解
+│   │   ├── DataPermission.java     # 数据权限
+│   │   ├── Log.java                # 操作日志
+│   │   ├── RepeatSubmit.java       # 防重复提交
+│   │   └── ValidField.java         # 字段校验
+│   ├── aspect/                     # 切面
+│   │   ├── LogAspect.java
+│   │   └── RepeatSubmitAspect.java
+│   ├── base/                       # 基础类
+│   │   ├── BaseEntity.java         # 实体基类（id, createTime, updateTime）
+│   │   ├── BaseQuery.java          # 查询基类（pageNum, pageSize, sortBy, order）
+│   │   └── IBaseEnum.java          # 枚举基接口
+│   ├── constant/                   # 常量
+│   │   ├── JwtClaimConstants.java
+│   │   ├── RedisConstants.java
 │   │   ├── SecurityConstants.java
-│   │   └── RedisConstants.java
-│   ├── enums/                  # 枚举
-│   │   ├── ResultCode.java
-│   │   └── MenuType.java
-│   ├── exception/              # 异常
-│   │   ├── BusinessException.java
-│   │   └── GlobalExceptionHandler.java
-│   ├── model/                  # 基础模型
-│   │   ├── BaseEntity.java
-│   │   ├── PageQuery.java
-│   │   └── Result.java
-│   └── util/                   # 工具类
-│       ├── JwtUtils.java
-│       └── SecurityUtils.java
-├── module/                     # 业务模块
-│   ├── system/                 # 系统模块
-│   │   ├── controller/
-│   │   │   └── UserController.java
-│   │   ├── converter/          # 对象转换
-│   │   │   └── UserConverter.java
-│   │   ├── entity/
-│   │   │   └── SysUser.java
-│   │   ├── mapper/
-│   │   │   └── SysUserMapper.java
-│   │   ├── service/
-│   │   │   ├── UserService.java
-│   │   │   └── impl/UserServiceImpl.java
-│   │   └── dto/
-│   │       ├── UserPageQuery.java
-│   │       ├── UserForm.java
-│   │       └── UserVO.java
-│   └── auth/                   # 认证模块
-│       ├── controller/
-│       │   └── AuthController.java
-│       ├── service/
-│       │   └── AuthService.java
-│       └── dto/
-│           ├── LoginForm.java
-│           └── LoginResult.java
-├── security/                   # 安全模块
-│   ├── filter/
-│   │   └── JwtAuthenticationFilter.java
-│   ├── handler/
-│   │   └── AuthenticationEntryPointImpl.java
+│   │   └── SystemConstants.java
+│   ├── enums/                      # 通用枚举
+│   │   ├── ActionTypeEnum.java
+│   │   ├── CaptchaTypeEnum.java
+│   │   ├── DataScopeEnum.java
+│   │   ├── EnvEnum.java
+│   │   ├── LogModuleEnum.java
+│   │   └── StatusEnum.java
+│   ├── exception/                  # 异常
+│   │   └── BusinessException.java
+│   ├── model/                      # 通用模型
+│   │   ├── KeyValue.java
+│   │   └── Option.java            # 下拉选项
+│   ├── result/                     # 统一响应
+│   │   ├── IResultCode.java        # 结果码接口
+│   │   ├── ResultCode.java         # 结果码枚举
+│   │   ├── Result.java             # 统一响应体（code: String）
+│   │   ├── PageResult.java         # 分页结果
+│   │   ├── ExcelResult.java        # Excel 导出结果
+│   │   └── ResponseWriter.java     # 响应写入工具
+│   ├── util/                       # 工具类
+│   │   ├── ExcelUtils.java
+│   │   └── IPUtils.java
+│   └── validator/                  # 自定义校验
+│       └── FieldValidator.java     # @ValidField 校验器
+│
+├── framework/                      # 框架层（技术基础设施）
+│   ├── apidoc/                     # API 文档
+│   │   ├── OpenApiConfig.java
+│   │   └── Knife4jOpenApiCustomizer.java
+│   ├── cache/                      # 缓存配置
+│   │   ├── RedisConfig.java
+│   │   ├── RedisCacheConfig.java
+│   │   └── CaffeineConfig.java
+│   ├── captcha/                    # 验证码
+│   │   ├── config/                 # CaptchaConfig, CaptchaProperties
+│   │   ├── service/CaptchaService.java
+│   │   ├── model/CaptchaInfo.java
+│   │   └── exception/CaptchaException.java
+│   ├── integration/                # 第三方集成
+│   │   ├── wxma/                   # 微信小程序
+│   │   ├── mail/                   # 邮件服务
+│   │   └── sms/                    # 短信服务
+│   ├── job/                        # 定时任务
+│   │   └── XxlJobConfig.java
+│   ├── mybatis/                    # MyBatis 配置
+│   │   ├── config/MybatisConfig.java
+│   │   ├── handler/MyMetaObjectHandler.java
+│   │   └── interceptor/MyDataPermissionHandler.java
+│   ├── security/                   # 安全框架
+│   │   ├── config/                 # SecurityConfig, SecurityProperties, PasswordEncoderConfig
+│   │   ├── filter/                 # TokenAuthenticationFilter, CaptchaValidationFilter
+│   │   ├── handler/                # MyAccessDeniedHandler, MyAuthenticationEntryPoint
+│   │   ├── model/                  # SysUserDetails, AuthenticationToken, RoleDataScope 等
+│   │   ├── provider/               # SmsAuthenticationProvider, WxMaAuthenticationProvider
+│   │   ├── service/                # PermissionService, SysUserDetailsService
+│   │   ├── token/                  # TokenManager, JwtTokenManager, RedisTokenManager
+│   │   └── util/SecurityUtils.java
+│   └── web/                        # Web 配置
+│       ├── advice/GlobalExceptionHandler.java
+│       ├── config/                 # CorsConfig, JacksonConfig
+│       └── filter/                 # RateLimiterFilter, RequestLogFilter
+│
+├── system/                         # 系统管理模块
+│   ├── controller/                 # 控制器
+│   │   ├── UserController.java
+│   │   ├── RoleController.java
+│   │   ├── MenuController.java
+│   │   ├── DeptController.java
+│   │   ├── DictController.java
+│   │   ├── ConfigController.java
+│   │   ├── NoticeController.java
+│   │   └── LogController.java
+│   ├── converter/                  # MapStruct 对象转换
+│   │   └── UserConverter.java 等
+│   ├── enums/                      # 模块枚举
+│   │   ├── MenuTypeEnum.java
+│   │   ├── DictCodeEnum.java
+│   │   └── NoticePublishStatusEnum.java 等
+│   ├── mapper/                     # MyBatis-Plus Mapper
+│   │   └── UserMapper.java 等
+│   ├── model/                      # 模型（按类型分子目录）
+│   │   ├── entity/                 # 实体（SysUser, SysRole, SysMenu 等）
+│   │   ├── form/                   # 表单 DTO（UserForm, RoleForm 等）
+│   │   ├── query/                  # 查询 DTO（UserQuery, RoleQuery 等）
+│   │   ├── vo/                     # 视图对象（UserPageVO, RolePageVO 等）
+│   │   └── dto/                    # 传输对象（RolePermsDTO, VisitCountDTO）
+│   ├── service/                    # 服务接口
+│   │   ├── UserService.java
+│   │   └── impl/UserServiceImpl.java
+│   ├── handler/                    # 处理器
+│   │   └── XxlJobSampleHandler.java
+│   └── listener/                   # 事件监听
+│       └── UserImportListener.java
+│
+├── auth/                           # 认证模块
+│   ├── controller/
+│   │   ├── AuthController.java
+│   │   └── WxMaAuthController.java
+│   ├── service/
+│   │   ├── AuthService.java
+│   │   ├── WxMaAuthService.java
+│   │   └── impl/                   # 实现类
 │   └── model/
-│       └── SysUserDetails.java
-└── Application.java            # 启动类
+│       ├── LoginReq.java
+│       ├── WxMaBindMobileReq.java
+│       ├── WxMaLoginResp.java
+│       └── WxMaPhoneLoginReq.java
+│
+├── codegen/                        # 代码生成模块
+│   ├── controller/CodegenController.java
+│   ├── service/                    # CodegenService, GenTableService
+│   ├── converter/CodegenConverter.java
+│   ├── mapper/                     # DatabaseMapper, GenTableMapper
+│   ├── model/
+│   │   ├── entity/                 # GenTable, GenTableColumn
+│   │   ├── form/GenConfigForm.java
+│   │   ├── query/                  # TablePageQuery, TableQuery
+│   │   └── vo/                     # CodegenPreviewVO 等
+│   ├── enums/                      # FormTypeEnum, JavaTypeEnum, QueryTypeEnum
+│   └── config/CodegenProperties.java
+│
+├── file/                           # 文件管理模块
+│   ├── controller/FileController.java
+│   ├── service/
+│   │   ├── FileService.java
+│   │   └── impl/                   # LocalFileService, AliyunFileService, MinioFileService
+│   └── model/FileInfo.java
+│
+└── message/                        # 消息推送模块
+    ├── controller/SseController.java
+    ├── service/SseService.java
+    ├── registry/SseSessionRegistry.java
+    ├── dto/                        # DictChangeEvent, OnlineUserDTO
+    ├── job/OnlineUserCountJob.java
+    └── topic/SseTopics.java
 ```
 
 ---

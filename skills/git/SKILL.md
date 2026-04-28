@@ -1,18 +1,18 @@
 ---
-name: git-version
-description: Git 版本管理自动化规范。当需要自动生成 Commit Message、管理版本号、创建 Tag、生成 Changelog 或 Release Notes 时使用此 skill。
+name: git
+description: Git version control automation standards. Use this skill when generating commit messages, managing version numbers, creating tags, or generating changelogs and release notes.
 ---
 
 # Git 版本管理自动化规范
 
 ## 触发条件
 
-- 需要生成规范的 Commit Message
-- 需要管理语义化版本号
-- 需要创建 Git Tag
-- 需要生成 Changelog
-- 需要生成 Release Notes
-- 需要自动化版本发布流程
+- Generate conventional commit messages
+- Manage semantic versioning
+- Create Git tags
+- Generate changelogs
+- Generate release notes
+- Automate version release workflows
 
 ---
 

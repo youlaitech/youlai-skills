@@ -1,17 +1,17 @@
 ---
 name: nestjs
-description: NestJS 后端开发规范。当开发 NestJS 项目、实现 REST API、TypeORM 数据访问、JWT 认证、权限控制时使用此 skill。
+description: NestJS backend development standards. Use this skill when developing NestJS projects, implementing REST APIs, using TypeORM, JWT authentication, or permission control.
 ---
 
 # NestJS 后端开发规范
 
 ## 触发条件
 
-- 开发 NestJS 项目
-- 实现 REST API
-- 使用 TypeORM 数据访问
-- 实现 JWT 认证
-- 实现权限控制
+- Develop NestJS projects
+- Implement REST APIs
+- Use TypeORM for data access
+- Implement JWT authentication
+- Implement permission control
 
 ---
 
@@ -32,52 +32,153 @@ description: NestJS 后端开发规范。当开发 NestJS 项目、实现 REST A
 
 ```
 src/
-├── common/                     # 公共模块
-│   ├── decorators/             # 自定义装饰器
+├── common/                         # 公共模块（17 个子目录）
+│   ├── constants/                  # 常量
+│   │   ├── metadata.constant.ts
+│   │   ├── redis.constants.ts
+│   │   ├── role.constant.ts
+│   │   └── system.constant.ts
+│   ├── context/                    # 请求上下文
+│   │   └── request-context.ts
+│   ├── decorators/                 # 自定义装饰器
+│   │   ├── auth.decorator.ts
 │   │   ├── current-user.decorator.ts
-│   │   └── permission.decorator.ts
-│   ├── filters/                # 异常过滤器
+│   │   ├── data-permission.decorator.ts
+│   │   └── log.decorator.ts
+│   ├── dto/                        # 基础 DTO
+│   │   └── base-query.dto.ts
+│   ├── entities/                   # 基础实体
+│   │   └── base.entity.ts
+│   ├── enums/                      # 枚举
+│   │   ├── action-type.enum.ts
+│   │   ├── data-scope.enum.ts
+│   │   ├── error-code.enum.ts
+│   │   └── log-module.enum.ts
+│   ├── exceptions/                 # 业务异常
+│   │   └── business.exception.ts
+│   ├── filters/                    # 异常过滤器
 │   │   └── http-exception.filter.ts
-│   ├── guards/                 # 守卫
+│   ├── guards/                     # 守卫
 │   │   ├── jwt-auth.guard.ts
-│   │   └── permission.guard.ts
-│   ├── interceptors/           # 拦截器
-│   │   └── transform.interceptor.ts
-│   ├── interfaces/             # 公共接口
-│   │   └── result.interface.ts
-│   ├── pipes/                  # 管道
-│   │   └── validation.pipe.ts
-│   └── utils/                  # 工具类
-│       └── bcrypt.util.ts
-├── config/                     # 配置
-│   ├── database.config.ts
+│   │   ├── permission.guard.ts
+│   │   └── data-scope.guard.ts
+│   ├── interceptors/               # 拦截器
+│   │   ├── response.interceptor.ts
+│   │   ├── request.interceptor.ts
+│   │   └── data-permission.interceptor.ts
+│   ├── interfaces/                 # 公共接口
+│   │   ├── current-user.interface.ts
+│   │   └── response.interface.ts
+│   ├── middleware/                  # 中间件
+│   │   ├── logger.middleware.ts
+│   │   ├── rate-limit.middleware.ts
+│   │   └── request-context.middleware.ts
+│   ├── models/                     # 数据模型
+│   │   └── role-data-scope.model.ts
+│   ├── plugins/                    # 插件
+│   │   └── data-permission.plugin.ts
+│   ├── redis/                      # Redis 服务
+│   │   ├── redis.module.ts
+│   │   └── redis.service.ts
+│   ├── subscribers/                # TypeORM 订阅者
+│   │   └── audit.subscriber.ts
+│   └── utils/                      # 工具类
+│       ├── captcha.util.ts
+│       ├── logger_utils.ts
+│       ├── serialize.util.ts
+│       └── user-agent.util.ts
+│
+├── config/                         # 配置
+│   ├── jwt.config.ts
+│   ├── oss.config.ts
 │   ├── redis.config.ts
-│   └── jwt.config.ts
-├── modules/                    # 业务模块
-│   ├── system/                 # 系统模块
-│   │   ├── user/
-│   │   │   ├── user.controller.ts
-│   │   │   ├── user.service.ts
-│   │   │   ├── user.module.ts
-│   │   │   ├── entities/
-│   │   │   │   └── user.entity.ts
-│   │   │   └── dto/
-│   │   │       ├── user-page.dto.ts
-│   │   │       ├── user-form.dto.ts
-│   │   │       └── user-vo.dto.ts
-│   │   ├── role/
-│   │   └── menu/
-│   └── auth/                   # 认证模块
-│       ├── auth.controller.ts
-│       ├── auth.service.ts
-│       ├── auth.module.ts
-│       ├── strategies/
-│       │   └── jwt.strategy.ts
-│       └── dto/
-│           ├── login.dto.ts
-│           └── login-result.dto.ts
-├── app.module.ts               # 根模块
-└── main.ts                     # 入口
+│   └── typeorm.config.ts
+│
+├── auth/                           # 认证模块
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── auth.module.ts
+│   ├── wxma-auth.controller.ts     # 微信小程序认证
+│   ├── wxma-auth.service.ts
+│   ├── strategies/
+│   │   └── jwt.strategy.ts
+│   ├── guards/
+│   │   └── redis-token.guard.ts
+│   ├── interfaces/
+│   │   └── user-session.interface.ts
+│   └── dto/
+│       ├── login-request.dto.ts
+│       ├── login-result.dto.ts
+│       └── wxma-login-result.dto.ts
+│
+├── system/                         # 系统管理模块（按实体划分子模块）
+│   ├── user/                       # 用户管理
+│   │   ├── user.controller.ts
+│   │   ├── user.service.ts
+│   │   ├── user.module.ts
+│   │   ├── entities/
+│   │   │   ├── sys-user.entity.ts
+│   │   │   ├── sys-user-role.entity.ts
+│   │   │   └── sys-user-social.entity.ts
+│   │   ├── dto/
+│   │   │   ├── create-user.dto.ts
+│   │   │   ├── update-user.dto.ts
+│   │   │   ├── user-form.dto.ts
+│   │   │   ├── user-query.dto.ts
+│   │   │   ├── current-user.dto.ts
+│   │   │   ├── password-change.dto.ts
+│   │   │   └── ...
+│   │   └── interfaces/
+│   │       └── user-auth-info.interface.ts
+│   ├── role/                       # 角色管理
+│   │   ├── role.controller.ts
+│   │   ├── role.service.ts
+│   │   ├── role-permission.service.ts
+│   │   ├── role.module.ts
+│   │   ├── entities/{sys-role,sys-role-menu,sys-role-dept}.entity.ts
+│   │   └── dto/{create-role,update-role,role-query}.dto.ts
+│   ├── menu/                       # 菜单管理
+│   │   ├── menu.controller.ts
+│   │   ├── menu.service.ts
+│   │   ├── menu.module.ts
+│   │   ├── entities/sys-menu.entity.ts
+│   │   ├── dto/{create-menu,update-menu}.dto.ts
+│   │   └── interfaces/menu.interface.ts
+│   ├── dept/                       # 部门管理
+│   ├── dict/                       # 字典管理（含 dict-item）
+│   ├── config/                     # 系统配置
+│   ├── notice/                     # 通知公告（含 user-notice）
+│   └── log/                        # 日志管理
+│       ├── log.controller.ts
+│       ├── log.service.ts
+│       ├── log.module.ts
+│       ├── logging.interceptor.ts  # 日志拦截器
+│       ├── entities/sys-log.entity.ts
+│       └── dto/{log-page,log-query,visit-stats,visit-trend}.dto.ts
+│
+├── codegen/                        # 代码生成器
+│   ├── codegen.controller.ts
+│   ├── codegen.service.ts
+│   ├── codegen.module.ts
+│   ├── dto/{codegen-preview,gen-config-form,table-query}.dto.ts
+│   └── templates/{backend,frontend}/
+│
+├── file/                           # 文件模块
+│   ├── file.controller.ts
+│   ├── file.service.ts
+│   └── file.module.ts
+│
+├── message/                        # 消息模块（SSE 推送）
+│   ├── sse.controller.ts
+│   ├── sse.service.ts
+│   ├── sse-session-registry.service.ts
+│   └── sse.module.ts
+│
+├── types/                          # 第三方类型声明
+│   └── third-party.d.ts
+│
+├── app.module.ts                   # 根模块
+└── main.ts                         # 入口
 ```
 
 ---
@@ -501,3 +602,5 @@ export class BusinessException extends Error {
 - [ ] 使用 TypeORM 逻辑删除
 - [ ] API 添加 @ApiOperation 注解
 - [ ] 模块按功能划分
+- [ ] 使用依赖注入
+- [ ] 使用拦截器统一响应格式

@@ -1,17 +1,17 @@
 ---
 name: gin
-description: Gin 后端开发规范。当开发 Gin 项目、实现 REST API、GORM 数据访问、JWT 认证、权限控制时使用此 skill。
+description: Gin backend development standards. Use this skill when developing Go/Gin projects, implementing REST APIs, using GORM, JWT authentication, or permission control.
 ---
 
 # Gin 后端开发规范
 
 ## 触发条件
 
-- 开发 Gin 项目
-- 实现 REST API
-- 使用 GORM 数据访问
-- 实现 JWT 认证
-- 实现权限控制
+- Develop Gin projects
+- Implement REST APIs
+- Use GORM for data access
+- Implement JWT authentication
+- Implement permission control
 
 ---
 
@@ -35,57 +35,135 @@ description: Gin 后端开发规范。当开发 Gin 项目、实现 REST API、G
 > **简单单体项目**：`main.go` 可直接放根目录，无需 `cmd/` 目录。`cmd/` 适用于多入口项目（如同时有 API 服务、CLI 工具、定时任务）。
 
 ```
-├── main.go                     # 程序入口（简单单体项目放根目录）
-├── internal/                   # 私有代码（Go 编译器强制不可被外部导入）
-│   ├── app/                    # 应用层
-│   │   └── myapp/
-│   │       ├── handler/        # HTTP 处理器（Controller）
-│   │       │   ├── user.go
-│   │       │   └── auth.go
-│   │       └── router/         # 路由注册
-│   │           └── router.go
-│   ├── domain/                 # 领域层
-│   │   ├── entity/             # 实体
-│   │   │   ├── base.go
+├── main.go                         # 程序入口
+├── internal/                       # 私有代码（Go 编译器强制不可被外部导入）
+│   ├── auth/                       # 认证模块
+│   │   ├── handler/                # HTTP 处理器
+│   │   │   ├── auth_handler.go
+│   │   │   └── wxma_handler.go
+│   │   ├── model/                  # 请求/响应模型
+│   │   │   ├── captcha.go
+│   │   │   ├── request.go
+│   │   │   └── wxma_model.go
+│   │   ├── service/                # 业务逻辑
+│   │   │   ├── auth_service.go
+│   │   │   └── wxma_service.go
+│   │   └── router.go              # 模块路由注册
+│   ├── system/                     # 系统管理模块（按实体划分子模块）
+│   │   ├── user/
+│   │   │   ├── handler/user_handler.go
+│   │   │   ├── model/{entity,form,query,vo}.go
+│   │   │   ├── repository/user_repo.go
+│   │   │   └── service/user_service.go
+│   │   ├── role/
+│   │   │   ├── handler/role_handler.go
+│   │   │   ├── model/{entity,form,query,vo}.go
+│   │   │   ├── repository/{role_repo,role_perms_repo}.go
+│   │   │   └── service/{role_service,cache_service}.go
+│   │   ├── menu/                   # menu_handler + model + repository + service
+│   │   ├── dept/                   # dept_handler + model + repository + service
+│   │   ├── dict/                   # dict_handler + model + repository + service
+│   │   ├── config/                 # config_handler + model + repository + service
+│   │   ├── notice/                 # notice_handler + model + repository + service
+│   │   ├── log/                    # log_handler + model + repository + service
+│   │   └── router.go              # 系统模块路由注册
+│   ├── codegen/                    # 代码生成模块
+│   │   ├── handler/codegen_handler.go
+│   │   ├── model/{form,query,vo}.go
+│   │   ├── service/codegen_service.go
+│   │   ├── templates/{backend,frontend}/
+│   │   └── router.go
+│   ├── file/                       # 文件模块
+│   │   ├── handler/file_handler.go
+│   │   └── router.go
+│   ├── message/                    # 消息模块（SSE 推送）
+│   │   ├── handler.go
+│   │   ├── service.go
+│   │   ├── registry.go
+│   │   └── types.go
+│   ├── common/                     # 公共组件
+│   │   ├── auth/                   # JWT 认证 + Token 管理
+│   │   │   ├── config.go
+│   │   │   ├── jwt_token_manager.go
+│   │   │   ├── redis_token_manager.go
+│   │   │   ├── token_manager.go
+│   │   │   ├── middleware.go
+│   │   │   └── model.go
+│   │   ├── config/                 # 全局配置
+│   │   │   ├── config.go
+│   │   │   └── loader.go
+│   │   ├── context/                # 上下文（用户信息）
 │   │   │   └── user.go
-│   │   ├── dto/                # 数据传输对象
-│   │   │   ├── user_dto.go
-│   │   │   └── page_dto.go
-│   │   └── vo/                 # 视图对象
-│   │       └── user_vo.go
-│   ├── infra/                  # 基础设施层
-│   │   ├── repository/         # 数据访问
-│   │   │   └── user_repo.go
-│   │   ├── middleware/         # 中间件
-│   │   │   ├── jwt.go
-│   │   │   ├── permission.go
-│   │   │   └── cors.go
-│   │   └── persistence/        # 持久化配置
-│   │       └── mysql.go
-│   └── service/                # 业务逻辑层
-│       └── user_service.go
-├── pkg/                        # 公共库（可被外部项目导入）
-│   ├── response/               # 统一响应
-│   │   └── result.go
-│   ├── auth/                   # 认证工具
-│   │   └── jwt.go
-│   ├── cache/                  # 缓存封装
-│   │   └── redis.go
-│   ├── errs/                   # 错误定义
+│   │   ├── database/               # 数据库 + 分页
+│   │   │   ├── config.go
+│   │   │   ├── database.go
+│   │   │   └── paginate.go
+│   │   ├── excel/                  # Excel 导入导出
+│   │   │   └── excel.go
+│   │   ├── json/                   # JSON 序列化
+│   │   │   └── json.go
+│   │   ├── logger/                 # 日志（zap）
+│   │   │   ├── config.go
+│   │   │   ├── loader.go
+│   │   │   ├── logger.go
+│   │   │   └── middleware.go
+│   │   ├── permission/             # 权限服务
+│   │   │   ├── datascope/data_scope.go
+│   │   │   ├── model/user_permissions_vo.go
+│   │   │   └── service/permission_service.go
+│   │   ├── redis/                  # Redis 客户端
+│   │   │   ├── redis.go
+│   │   │   └── keys.go
+│   │   ├── storage/                # 文件存储（本地/阿里云）
+│   │   │   ├── storage.go
+│   │   │   ├── local.go
+│   │   │   ├── aliyun.go
+│   │   │   └── factory.go
+│   │   ├── utils/                  # 工具类
+│   │   │   ├── file.go
+│   │   │   ├── file_validator.go
+│   │   │   ├── password.go
+│   │   │   ├── tree.go
+│   │   │   └── verification_code.go
+│   │   ├── validator/              # 自定义校验器
+│   │   │   └── validator.go
+│   │   └── response.go             # 统一响应
+│   ├── middleware/                  # 全局中间件
+│   │   ├── error_handler.go
+│   │   ├── permission.go
+│   │   ├── operation_log.go
+│   │   ├── rate_limiter.go
+│   │   └── requestid.go
+│   └── router/
+│       └── register.go             # 路由注册入口
+├── pkg/                            # 公共库（可被外部项目导入）
+│   ├── constant/                   # 常量 + 错误码
+│   │   ├── business.go
+│   │   └── error_code.go
+│   ├── enums/                      # 枚举
+│   │   ├── action_type.go
+│   │   └── log_module.go
+│   ├── errs/                       # 统一错误定义
 │   │   └── errs.go
-│   └── utils/                  # 通用工具
-│       └── bcrypt.go
-├── api/                        # Swagger 文档（swag init -o api 生成）
+│   ├── model/                      # 基础模型
+│   │   ├── entity.go
+│   │   ├── option.go
+│   │   └── pagination.go
+│   └── types/                      # 自定义类型
+│       ├── bigint.go
+│       └── time.go
+├── configs/                        # 配置文件
+│   ├── dev.yaml
+│   ├── prod.yaml
+│   └── test.yaml
+├── docs/                           # Swagger 文档（swag init -o docs 生成）
 │   ├── docs.go
 │   ├── swagger.json
 │   └── swagger.yaml
-├── configs/                    # 配置文件模板或默认配置
-│   └── config.yaml
-├── docker/                     # Docker 配置
+├── docker/
 │   └── docker-compose.yml
-├── sql/                        # 数据库脚本
-│   └── mysql/
-│       └── schema.sql
+├── sql/
+│   └── mysql/youlai_admin.sql
 ├── go.mod
 └── go.sum
 ```
@@ -94,17 +172,23 @@ description: Gin 后端开发规范。当开发 Gin 项目、实现 REST API、G
 
 | 目录           | 用途                                  | 规则                         |
 | -------------- | ------------------------------------- | ---------------------------- |
-| `/cmd`         | 主干程序入口                          | 每个应用一个子目录，代码精简 |
 | `/internal`    | 私有代码                              | Go 编译器强制不可被外部导入  |
 | `/pkg`         | 公共库                                | 可被外部项目导入使用         |
-| `/api`         | API 定义（OpenAPI/Swagger、协议定义） | 存放接口规范文件             |
 | `/configs`     | 配置文件模板或默认配置                | 不含敏感信息                 |
-| `/scripts`     | 构建、安装、分析脚本                  | 保持 Makefile 简洁           |
-| `/build`       | 打包和 CI 配置                        | Docker、OS 包配置            |
-| `/deployments` | 部署配置                              | IaaS/PaaS/K8s 配置           |
-| `/test`        | 额外测试应用和测试数据                | 大项目可设 data 子目录       |
-| `/docs`        | 设计和用户文档                        | 除 godoc 外的文档            |
-| `/tools`       | 项目支持工具                          | 可导入 internal/pkg          |
+| `/docs`        | Swagger API 文档                      | swag init 自动生成           |
+| `/sql`         | 数据库脚本                            | 初始化 Schema               |
+| `/docker`      | Docker 配置                           | docker-compose.yml           |
+
+### 模块分层规范
+
+每个业务模块（`internal/{module}/`）遵循四层架构：
+
+| 层          | 目录          | 职责               |
+| ----------- | ------------- | ------------------ |
+| Handler     | `handler/`    | HTTP 请求处理      |
+| Model       | `model/`      | 实体、DTO、VO、查询 |
+| Repository  | `repository/` | 数据访问           |
+| Service     | `service/`    | 业务逻辑           |
 
 ### 禁止使用的目录
 
@@ -181,9 +265,9 @@ package v1
 
 import (
     "github.com/gin-gonic/gin"
-    "youlai/internal/model/dto"
-    "youlai/internal/service"
-    "youlai/pkg/response"
+    "youlai/internal/system/user/model"
+    "youlai/internal/system/user/service"
+    "youlai/pkg/errs"
 )
 
 type UserAPI struct {
@@ -201,13 +285,13 @@ func NewUserAPI() *UserAPI {
 // @Tags 用户管理
 // @Accept json
 // @Produce json
-// @Param query query dto.UserPageQuery false "查询参数"
+// @Param query query model.UserPageQuery false "查询参数"
 // @Success 200 {object} response.PageResult
 // @Router /api/v1/users/page [get]
 func (api *UserAPI) Page(c *gin.Context) {
-    var query dto.UserPageQuery
+    var query model.UserPageQuery
     if err := c.ShouldBindQuery(&query); err != nil {
-        response.ParamError(c, err.Error())
+        c.Error(errs.BadRequest(err.Error()))
         return
     }
     result := api.userService.PageUsers(&query)
@@ -237,9 +321,9 @@ func (api *UserAPI) GetByID(c *gin.Context) {
 // @Router /api/v1/users [post]
 // @Security Bearer
 func (api *UserAPI) Create(c *gin.Context) {
-    var form dto.UserForm
+    var form model.UserForm
     if err := c.ShouldBindJSON(&form); err != nil {
-        response.ParamError(c, err.Error())
+        c.Error(errs.BadRequest(err.Error()))
         return
     }
     id := api.userService.CreateUser(&form)
@@ -256,9 +340,9 @@ func (api *UserAPI) Create(c *gin.Context) {
 // @Router /api/v1/users [put]
 // @Security Bearer
 func (api *UserAPI) Update(c *gin.Context) {
-    var form dto.UserForm
+    var form model.UserForm
     if err := c.ShouldBindJSON(&form); err != nil {
-        response.ParamError(c, err.Error())
+        c.Error(errs.BadRequest(err.Error()))
         return
     }
     api.userService.UpdateUser(&form)
@@ -405,14 +489,13 @@ func (SysUser) TableName() string {
 ## Part 7: Service 规范
 
 ```go
-// internal/service/user_service.go
+// internal/system/user/service/user_service.go
 package service
 
 import (
-    "youlai/internal/model/dto"
-    "youlai/internal/model/entity"
-    "youlai/internal/model/vo"
-    "youlai/internal/repository"
+    "youlai/internal/system/user/model"
+    "youlai/internal/system/user/repository"
+    "youlai/pkg/errs"
 )
 
 type UserService struct {
@@ -425,11 +508,11 @@ func NewUserService() *UserService {
     }
 }
 
-func (s *UserService) PageUsers(query *dto.UserPageQuery) *dto.PageResult {
+func (s *UserService) PageUsers(query *model.UserPageQuery) *model.PageResult {
     users, total := s.userRepo.Page(query)
-    list := make([]vo.UserVO, len(users))
+    list := make([]model.UserVO, len(users))
     for i, user := range users {
-        list[i] = vo.UserVO{
+        list[i] = model.UserVO{
             ID:         user.ID,
             Username:   user.Username,
             Nickname:   user.Nickname,
@@ -439,18 +522,18 @@ func (s *UserService) PageUsers(query *dto.UserPageQuery) *dto.PageResult {
             CreateTime: user.CreateTime,
         }
     }
-    return &dto.PageResult{
+    return &model.PageResult{
         List:  list,
         Total: total,
     }
 }
 
-func (s *UserService) GetUserByID(id string) *vo.UserVO {
+func (s *UserService) GetUserByID(id string) *model.UserVO {
     user := s.userRepo.GetByID(id)
     if user == nil {
-        panic("用户不存在")
+        panic(errs.BadRequest("用户不存在"))
     }
-    return &vo.UserVO{
+    return &model.UserVO{
         ID:         user.ID,
         Username:   user.Username,
         Nickname:   user.Nickname,
@@ -461,12 +544,11 @@ func (s *UserService) GetUserByID(id string) *vo.UserVO {
     }
 }
 
-func (s *UserService) CreateUser(form *dto.UserForm) uint {
-    // 检查用户名是否存在
+func (s *UserService) CreateUser(form *model.UserForm) uint {
     if s.userRepo.ExistsByUsername(form.Username) {
-        panic("用户名已存在")
+        panic(errs.BadRequest("用户名已存在"))
     }
-    user := &entity.SysUser{
+    user := &model.SysUser{
         Username: form.Username,
         Password: bcrypt.Hash(form.Password),
         Nickname: form.Nickname,

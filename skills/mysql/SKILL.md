@@ -1,16 +1,16 @@
 ---
-name: mysql-design
-description: MySQL 数据库设计规范。当设计数据库表结构、字段类型、索引、命名规范时使用此 skill。
+name: mysql
+description: MySQL database design standards. Use this skill when designing table structures, field types, indexes, or naming conventions for MySQL databases.
 ---
 
 # MySQL 数据库设计规范
 
 ## 触发条件
 
-- 设计数据库表结构
-- 定义字段类型和长度
-- 创建索引
-- 命名表和字段
+- Design database table structures
+- Define field types and lengths
+- Create indexes
+- Name tables and fields
 
 ---
 

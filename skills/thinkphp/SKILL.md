@@ -1,6 +1,6 @@
 ---
 name: thinkphp
-description: ThinkPHP 后端开发规范。当开发 ThinkPHP 项目、实现 REST API、模型数据访问、JWT 认证时使用此 skill。
+description: ThinkPHP backend development standards. Use this skill when developing ThinkPHP projects, implementing REST APIs, model data access, or JWT authentication.
 ---
 
 # ThinkPHP 后端开发规范
@@ -9,11 +9,11 @@ description: ThinkPHP 后端开发规范。当开发 ThinkPHP 项目、实现 RE
 
 ## 触发条件
 
-- 开发 ThinkPHP 项目
-- 实现 REST API
-- 使用模型数据访问
-- 实现 JWT 认证
-- 实现权限控制
+- Develop ThinkPHP projects
+- Implement REST APIs
+- Use model data access
+- Implement JWT authentication
+- Implement permission control
 
 ---
 
@@ -33,39 +33,126 @@ description: ThinkPHP 后端开发规范。当开发 ThinkPHP 项目、实现 RE
 
 ```
 app/
-├─ BaseController.php          # 基础控制器类（官方推荐位置）
-├─ ExceptionHandle.php         # 应用异常处理
-├─ common.php                  # 全局公共函数
-├─ middleware.php              # 全局中间件定义
-├─ provider.php                # 服务提供定义
-├─ event.php                   # 全局事件定义
+├─ BaseController.php              # 基础控制器类
+├─ ExceptionHandle.php             # ★ 全局异常处理类
+├─ common.php                      # 全局公共函数
+├─ middleware.php                   # 全局中间件定义
+├─ provider.php                    # 服务提供定义
+├─ event.php                       # 全局事件定义
 │
-├─ auth/                       # 认证模块（目录使用小写）
-│  ├─ controller/              # 控制器目录
-│  ├─ service/                 # 服务目录
-│  └─ validate/                # 验证器目录
+├─ auth/                           # 认证模块
+│  ├─ controller/
+│  │  ├─ AuthController.php        # 登录/登出/刷新令牌
+│  │  └─ WxMaAuthController.php    # 微信小程序认证
+│  └─ service/
+│     ├─ AuthService.php
+│     └─ WxMaAuthService.php
 │
-├─ system/                     # 系统模块（目录使用小写）
-│  ├─ controller/              # 控制器目录
-│  ├─ service/                 # 服务目录
-│  ├─ model/                   # 模型目录
-│  └─ validate/                # 验证器目录
+├─ system/                         # 系统管理模块
+│  ├─ annotation/
+│  │  └─ Log.php                   # @Log 注解（操作日志标记）
+│  ├─ controller/
+│  │  ├─ UserController.php
+│  │  ├─ RoleController.php
+│  │  ├─ MenuController.php
+│  │  ├─ DeptController.php
+│  │  ├─ DictController.php
+│  │  ├─ ConfigController.php
+│  │  ├─ NoticeController.php
+│  │  └─ LogController.php
+│  ├─ model/                       # 模型（User, Role, Menu 等）
+│  ├─ service/                     # 业务逻辑
+│  │  ├─ UserService.php
+│  │  ├─ RoleService.php
+│  │  ├─ RolePermService.php
+│  │  ├─ DataPermissionService.php
+│  │  └─ ...
+│  ├─ enums/
+│  │  ├─ ActionType.php
+│  │  └─ LogModule.php
+│  └─ validate/
+│     ├─ UserValidate.php
+│     └─ RoleValidate.php
 │
-├─ file/                       # 文件模块
-├─ codegen/                    # 代码生成模块
+├─ codegen/                        # 代码生成模块
+│  ├─ controller/CodegenController.php
+│  └─ service/CodegenService.php
 │
-├─ common/                     # 公共代码（非模块）
-│  ├─ constants/               # 常量定义
-│  ├─ enums/                   # 枚举类
-│  ├─ exception/               # 异常类
-│  ├─ redis/                   # Redis 工具
-│  ├─ security/                # 认证/权限
-│  ├─ util/                    # 工具类
-│  └─ web/                     # Web 相关
+├─ file/                           # 文件模块
+│  ├─ controller/FileController.php
+│  └─ service/FileService.php
 │
-├─ middleware/                 # 全局中间件
-├─ traits/                     # 复用特性
-└─ websocket/                  # WebSocket
+├─ common/                         # 公共代码（非模块）
+│  ├─ constants/                   # 常量（RedisConstants, RedisKey, NoticeEvents）
+│  ├─ enums/                       # 枚举（DataScopeEnum）
+│  ├─ exception/                   # ★ 异常类（BusinessException）
+│  ├─ middleware/                   # ★ 中间件（7 个）
+│  │  ├─ AuthMiddleware.php        # 认证
+│  │  ├─ PermMiddleware.php        # 接口权限
+│  │  ├─ DataScopeMiddleware.php   # 数据权限
+│  │  ├─ Cors.php                  # 跨域
+│  │  ├─ LogMiddleware.php         # 操作日志
+│  │  ├─ RateLimitMiddleware.php   # 限流
+│  │  └─ ConvertCaseMiddleware.php # 大小写转换
+│  ├─ model/
+│  │  └─ BaseModel.php             # 基础模型
+│  ├─ traits/                      # ★ 复用特性
+│  │  ├─ AuthTrait.php             # 认证复用
+│  │  └─ ParamsTrait.php           # 参数处理复用
+│  ├─ util/                        # 工具类
+│  │  ├─ CaseConverter.php
+│  │  ├─ IdStringify.php
+│  │  ├─ PageUtil.php
+│  │  ├─ TemplateRenderer.php
+│  │  └─ VerifyCodeHelper.php
+│  ├─ validate/
+│  │  └─ BaseValidate.php          # 基础验证器
+│  └─ web/                         # ★ 统一响应封装
+│     ├─ IResultCode.php           # 结果码接口
+│     ├─ ResultCode.php            # 结果码枚举
+│     ├─ Result.php                # 统一响应类
+│     └─ PageResult.php            # 分页响应类
+│
+├─ controller/BaseController.php   # 基础控制器
+
+extend/                            # 扩展类库
+├─ jwt/                            # JWT 认证
+│  ├─ JwtTokenManager.php
+│  ├─ TokenManager.php
+│  ├─ TokenManagerResolver.php
+│  ├─ AuthenticationToken.php
+│  ├─ JwtClaimConstants.php
+│  └─ SecurityConstants.php
+├─ redis/                          # Redis 工具
+│  ├─ RedisClient.php
+│  └─ KeyFormatter.php
+├─ sse/                            # SSE 推送
+│  ├─ SseEmitter.php
+│  ├─ SseService.php
+│  ├─ SseEventPublisher.php
+│  ├─ SseSessionRegistry.php
+│  ├─ SseTopics.php
+│  ├─ SseWorkerServer.php
+│  └─ NoticeListener.php
+└─ http/
+   └─ HttpClient.php
+
+config/                            # 应用配置
+├─ app.php, database.php, cache.php, log.php
+├─ security.php, wechat.php, captcha.php
+├─ filesystem.php, queue.php, worker.php
+├─ middleware.php, route.php, trace.php
+
+route/
+└─ app.php                         # 路由定义
+
+public/
+├─ index.php                       # 入口文件
+├─ swagger.json                    # API 文档
+└─ swagger-ui/index.html
+
+sql/
+└─ mysql/youlai_admin.sql
 ```
 
 ---
@@ -569,7 +656,107 @@ final class Auth
 
 ---
 
-## Part 9: 验证器规范
+## Part 9: 异常处理
+
+### 全局异常处理器
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace app;
+
+use app\common\exception\BusinessException;
+use app\common\web\Result;
+use app\common\web\ResultCode;
+use think\db\exception\DataNotFoundException;
+use think\db\exception\ModelNotFoundException;
+use think\exception\Handle;
+use think\exception\HttpException;
+use think\exception\HttpResponseException;
+use think\exception\ValidateException;
+use think\Response;
+use Throwable;
+
+class ExceptionHandle extends Handle
+{
+    public function render($request, Throwable $e): Response
+    {
+        // 业务异常：返回统一错误响应
+        if ($e instanceof BusinessException) {
+            return json(Result::failedWith($e->getResultCode(), $e->getMessage()));
+        }
+
+        // 验证异常
+        if ($e instanceof ValidateException) {
+            return json(Result::failedWith(ResultCode::PARAM_ERROR, $e->getError()));
+        }
+
+        // HTTP 异常
+        if ($e instanceof HttpException) {
+            return json(Result::failedWith(ResultCode::fromValue($e->getStatusCode()), $e->getMessage()));
+        }
+
+        // 其他异常：返回系统错误（生产环境隐藏详情）
+        return parent::render($request, $e);
+    }
+}
+```
+
+### 业务异常类
+
+```php
+<?php
+declare(strict_types=1);
+
+namespace app\common\exception;
+
+use app\common\web\ResultCode;
+use RuntimeException;
+
+final class BusinessException extends RuntimeException
+{
+    private ResultCode $resultCode;
+
+    public function __construct(ResultCode $resultCode, string $message = '')
+    {
+        $this->resultCode = $resultCode;
+        parent::__construct($message ?: $resultCode->getMsg());
+    }
+
+    public function getResultCode(): ResultCode
+    {
+        return $this->resultCode;
+    }
+}
+```
+
+### 使用规范
+
+```php
+// 在 Service 层抛出业务异常
+if (!$user) {
+    throw new BusinessException(ResultCode::USER_NOT_EXIST);
+}
+
+// 自定义错误消息
+throw new BusinessException(ResultCode::USER_ERROR, '用户名已存在');
+
+// 在 Controller 层无需 try-catch，ExceptionHandle 统一捕获
+```
+
+### 配置异常处理器
+
+```php
+// config/app.php
+return [
+    'exception_handle' => \app\ExceptionHandle::class,
+];
+```
+
+---
+
+## Part 10: 验证器规范
 
 ```php
 <?php
@@ -610,7 +797,7 @@ final class UserValidate extends Validate
 
 ---
 
-## Part 10: 代码质量检查清单
+## Part 11: 代码质量检查清单
 
 - [ ] 目录使用小写+下划线
 - [ ] 类名采用驼峰法（首字母大写）
@@ -618,6 +805,8 @@ final class UserValidate extends Validate
 - [ ] 数据表和字段采用小写+下划线
 - [ ] 遵循 RESTful API 路径规范
 - [ ] 使用统一响应格式（Result/ResultCode）
+- [ ] 实现全局异常处理（ExceptionHandle）
+- [ ] 业务异常使用 BusinessException + ResultCode
 - [ ] 模型继承 BaseModel
 - [ ] 使用软删除
 - [ ] 分页接口使用 successPaginate

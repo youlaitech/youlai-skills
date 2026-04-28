@@ -1,21 +1,57 @@
 ---
 name: uniapp
-description: UniApp 移动端开发规范。当开发 UniApp + Vue3 移动应用、使用 wot-design-uni 组件、实现移动端 UI/UX、处理小程序兼容性时使用此 skill。
+description: UniApp + Vue3 mobile development standards. Use this skill when developing UniApp mobile apps, using wot-design-uni components, implementing mobile UI/UX, or handling mini-program compatibility.
 ---
 
 # UniApp 移动端开发规范
 
 ## 触发条件
 
-- 开发 UniApp 移动端项目
-- 使用 wot-design-uni 组件
-- 实现移动端 UI/UX
-- 处理小程序兼容性问题
-- 使用 UnoCSS 原子类
+- Develop UniApp mobile projects
+- Use wot-design-uni components
+- Implement mobile UI/UX
+- Handle mini-program compatibility issues
+- Use UnoCSS atomic classes
 
 ---
 
 ## Part 0: 强制规则
+
+### 核心分层原则
+
+**BEM 定义语义，UnoCSS 补充微调，SCSS 只做脏活。**
+
+| 层级 | 职责 | 示例 |
+|------|------|------|
+| **BEM** | 组件语义锚点 | `profile-card`、`profile-card__avatar` |
+| **UnoCSS** | 简单布局微调（≤3 个属性） | `flex items-center gap-16rpx` |
+| **SCSS** | 伪类/动画/穿透等原子类做不了的事 | `@keyframes`、复杂选择器 |
+
+### 选型决策
+
+| 场景 | 方案 | 示例 |
+|------|------|------|
+| 简单布局（1-2 个属性） | 原子类 | `class="flex items-center"` |
+| 组件样式（3+ 属性） | BEM | `class="profile-card"` |
+| 重复出现的组合 | Shortcuts 收敛 | `class="flex-center"` |
+| 主题相关 | CSS 变量 + BEM | `background: var(--color-primary)` |
+
+```vue
+<!-- ✅ 组件样式归 BEM，微调用原子类 -->
+<view class="profile-card">
+  <image class="profile-card__avatar" :src="user.avatar" />
+  <text class="profile-card__name">{{ user.name }}</text>
+</view>
+
+<!-- ✅ 简单间距直接用原子类 -->
+<view class="mt-16rpx p-4">
+  <wd-search v-model="keywords" placeholder="搜索" />
+</view>
+
+<!-- ❌ 同一元素混用过多原子类 + BEM -->
+<view class="profile-card flex flex-col p-28rpx bg-white rounded-28rpx shadow-sm">
+</view>
+```
 
 ### 0.1 组件优先原则
 
@@ -216,36 +252,66 @@ src/
 
 ### CSS 命名（BEM）
 
-```scss
-.user-card {
-  padding: 24rpx;
-  background: var(--color-bg);
-  border-radius: 16rpx;
+```
+block__element--modifier
+ │      │          │
+ │      │          └── 状态/变体（双连字符）
+ │      └── 组成部分（双下划线）
+ └── 页面前缀 + 功能实体
+```
 
-  &__header {
+**Block 必须带页面前缀**：
+
+```text
+首页(index)  → home-hero / home-nav / home-stat
+我的(mine)   → mine-hero / mine-profile / mine-menu
+登录(login)  → login-form / login-brand / login-nav
+工作台(work)  → work-menu / work-user / work-card
+```
+
+**Element 通用词汇**：
+
+| 语义 | 标准词汇 | 禁止 |
+|------|----------|------|
+| 头部 | `__header` | ~~head~~ / ~~top~~ |
+| 底部 | `__footer` | ~~bottom~~ |
+| 标题 | `__title` | ~~name~~ / ~~heading~~ |
+| 副标题 | `__subtitle` | ~~desc~~（描述时用 desc） |
+| 描述 | `__desc` | ~~text~~ / ~~detail~~ |
+| 图标 | `__icon` | ~~img~~ / ~~pic~~ |
+| 图片 | `__image` | ~~img~~ / ~~bg~~ |
+| 头像 | `__avatar` | ~~photo~~ |
+| 标签 | `__tag` | ~~badge~~（徽章时用 badge） |
+| 徽章 | `__badge` | ~~dot~~（圆点时用 dot） |
+| 操作按钮 | `__action` | ~~action-btn~~ |
+| 操作区 | `__actions` | ~~btns~~ |
+| 内容 | `__body` | ~~content~~ |
+| 输入框 | `__input` | ~~field~~（行容器时用 field） |
+| 表单行 | `__field` | ~~row~~ |
+| 列表 | `__list` | ~~items~~ |
+| 列表项 | `__item` | ~~row~~ |
+
+**SCSS 嵌套**：
+
+```scss
+.login {
+  background: linear-gradient(135deg, var(--color-bg-tertiary), var(--color-primary-light));
+
+  &__field {
     display: flex;
     align-items: center;
+
+    &:focus-within {
+      box-shadow: 0 0 0 2px var(--color-primary);
+    }
   }
 
-  &__avatar {
-    width: 80rpx;
-    height: 80rpx;
-    border-radius: 50%;
-  }
+  &__code-btn {
+    height: 64rpx;
+    border-radius: 16rpx;
 
-  &__name {
-    font-size: 28rpx;
-    font-weight: 600;
-    color: var(--color-text);
-  }
-
-  &__role {
-    font-size: 24rpx;
-    color: var(--color-text-secondary);
-  }
-
-  &--active {
-    border: 2rpx solid var(--color-primary);
+    &--active { color: var(--color-primary); background: var(--color-primary-light); }
+    &--disabled { color: var(--color-text-placeholder); background: var(--color-bg-tertiary); }
   }
 }
 ```
@@ -520,49 +586,143 @@ function showActions() {
 
 ---
 
-## Part 7: 暗黑模式 CSS 变量
+## Part 7: 主题变量系统
+
+### 变量速查
+
+**主题色**：
+
+| 语义 | Light | Dark | 变量 |
+|------|-------|------|------|
+| 主色 | `#4d80f0` | `#3b82f6` | `--color-primary` |
+| 主色浅 | `#e8f0fe` | `#1e3a5f` | `--color-primary-light` |
+| 主色深 | `#2563eb` | `#60a5fa` | `--color-primary-dark` |
+| 成功 | `#34d19d` | `#34d399` | `--color-success` |
+| 成功浅 | `#e6f7f1` | `#064e3b` | `--color-success-light` |
+| 警告 | `#f0883a` | `#fbbf24` | `--color-warning` |
+| 警告浅 | `#fff4e6` | `#78350f` | `--color-warning-light` |
+| 危险 | `#ff4757` | `#f87171` | `--color-danger` |
+| 危险浅 | `#fff1f2` | `#7f1d1d` | `--color-danger-light` |
+
+**背景色**：
+
+| 语义 | Light | Dark | 变量 |
+|------|-------|------|------|
+| 主背景 | `#ffffff` | `#1f2937` | `--color-bg` |
+| 次背景 | `#f5f5f5` | `#111827` | `--color-bg-secondary` |
+| 三级背景 | `#f1f5f9` | `#1e293b` | `--color-bg-tertiary` |
+
+**文字色**：
+
+| 语义 | Light | Dark | 变量 |
+|------|-------|------|------|
+| 主文字 | `#1f2937` | `#f9fafb` | `--color-text` |
+| 次文字 | `#6b7280` | `#9ca3af` | `--color-text-secondary` |
+| 占位文字 | `#9ca3af` | `#6b7280` | `--color-text-placeholder` |
+| 禁用文字 | `#d1d5db` | `#4b5563` | `--color-text-disabled` |
+
+**边框色**：
+
+| 语义 | Light | Dark | 变量 |
+|------|-------|------|------|
+| 默认 | `#e5e7eb` | `#374151` | `--color-border` |
+| 浅色 | `#f3f4f6` | `#1f2937` | `--color-border-light` |
+
+### 使用原则
 
 ```scss
-:root,
-page {
-  /* 背景色 */
-  --color-bg: #ffffff;
-  --color-bg-secondary: #f5f5f5;
-  --color-bg-tertiary: #ebebeb;
+// ✅ 使用变量
+.card { background: var(--color-bg); border: 1rpx solid var(--color-border); }
 
-  /* 文字色 */
-  --color-text: #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-text-placeholder: #9ca3af;
-
-  /* 边框色 */
-  --color-border: #e5e7eb;
-  --color-divider: #f3f4f6;
-
-  /* 功能色 */
-  --color-primary: #2563eb;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-
-  /* 渐变背景 */
-  --color-primary-light: rgba(37, 99, 235, 0.1);
-  --color-success-light: rgba(16, 185, 129, 0.1);
-  --color-warning-light: rgba(245, 158, 11, 0.1);
-  --color-danger-light: rgba(239, 68, 68, 0.1);
-}
-
-.wot-theme-dark {
-  --color-bg: #1f2937;
-  --color-bg-secondary: #111827;
-  --color-bg-tertiary: #374151;
-  --color-text: #f9fafb;
-  --color-text-secondary: #9ca3af;
-  --color-text-placeholder: #6b7280;
-  --color-border: #374151;
-  --color-divider: #1f2937;
-}
+// ❌ 禁止硬编码
+.card { background: #ffffff; border: 1rpx solid #e5e7eb; }
 ```
+
+### Wot Design 变量桥接
+
+项目在 `theme.scss` 中已桥接 Wot Design 变量：
+
+```scss
+--wot-color-theme:   var(--color-primary);
+--wot-color-success: var(--color-success);
+--wot-color-warning: var(--color-warning);
+--wot-color-danger:  var(--color-danger);
+--wot-color-bg:      var(--color-bg);
+--wot-color-text:    var(--color-text);
+--wot-color-text-secondary: var(--color-text-secondary);
+--wot-color-text-placeholder: var(--color-text-placeholder);
+--wot-color-border:  var(--color-border);
+```
+
+### z-index 层级
+
+只有 `position: fixed/sticky/absolute` 且存在层叠竞争的元素才设 z-index，禁止魔法数字。
+
+```scss
+--z-dropdown: 100;   // 下拉菜单、Popover
+--z-sticky:   200;   // 吸顶栏、吸底栏
+--z-overlay:  300;   // 遮罩层
+--z-popup:    400;   // Popup
+--z-dialog:   500;   // Dialog / MessageBox
+--z-toast:    600;   // Toast
+--z-navbar:   700;   // 固定导航栏
+--z-fab:      800;   // 浮动按钮
+```
+
+### 间距系统
+
+项目在 `theme.scss` 中定义了语义间距变量：
+
+| 语义 | 值 | 场景 |
+|------|-----|------|
+| xxs | `4rpx` | 极小间距 |
+| xs | `8rpx` | 图标与文字 |
+| sm | `16rpx` | 模块间分隔 |
+| md | `24rpx` | 卡片内边距 |
+| lg | `32rpx` | 页面左右边距 |
+| xl | `40rpx` | 大区块内边距 |
+| xxl | `48rpx` | 大区块分隔 |
+
+语义别名：`--spacing-page: 32rpx`、`--spacing-card: 24rpx`、`--spacing-section: 24rpx`、`--spacing-element: 16rpx`、`--spacing-compact: 8rpx`
+
+### 圆角
+
+| 场景 | 值 |
+|------|-----|
+| 小元素（按钮、标签） | `8rpx` |
+| 中元素（输入框） | `16rpx` |
+| 大卡片 | `24rpx` |
+| 圆形 | `50%` |
+
+### 阴影
+
+| 级别 | Light | Dark |
+|------|-------|------|
+| sm | `0 2rpx 4rpx rgba(0,0,0,0.05)` | `0 2rpx 4rpx rgba(0,0,0,0.2)` |
+| md | `0 8rpx 12rpx rgba(0,0,0,0.1)` | `0 8rpx 12rpx rgba(0,0,0,0.3)` |
+| lg | `0 20rpx 30rpx rgba(0,0,0,0.1)` | `0 20rpx 30rpx rgba(0,0,0,0.4)` |
+
+### 字体
+
+| 场景 | 字号 | 字重 | 行高 |
+|------|------|------|------|
+| 辅助信息 | `24rpx` | 400 | 1.4 |
+| 次要文字 | `26rpx` | 400 | 1.5 |
+| 正文 | `28rpx` | 400 | 1.6 |
+| 小标题 | `30rpx` | 600 | 1.4 |
+| 标题 | `32rpx` | 600 | 1.3 |
+| 大标题 | `36rpx` | 700 | 1.2 |
+
+### UnoCSS Shortcuts
+
+| 快捷类 | 展开 | 用途 |
+|--------|------|------|
+| `flex-center` | `flex justify-center items-center` | 居中 |
+| `flex-between` | `flex justify-between items-center` | 两端对齐 |
+| `flex-start` | `flex justify-start items-center` | 起始对齐 |
+| `flex-col-center` | `flex flex-col items-center` | 纵向居中 |
+
+**新增 Shortcut 条件**：全局出现 ≥ 5 次 + 有明确语义 + 不含业务色值。
 
 ---
 
@@ -583,6 +743,29 @@ page {
 ---
 
 ## Part 9: 小程序兼容性
+
+### WXSS 限制
+
+| 特性 | 状态 | 替代 |
+|------|------|------|
+| `:deep()` | 编译后残留，WXSS 报错 | 组件 `custom-class` + 非 scoped style |
+| `[attr*="val"]` | 不支持 | 具体类名 |
+| `:has()` / `:is()` | 不支持 | 具体选择器 |
+| `::before` / `::after` | 小程序不支持 | 真实元素 |
+
+### 覆盖组件样式
+
+```vue
+<!-- ✅ custom-class + 非 scoped 覆盖组件样式 -->
+<wd-card custom-class="my-card">
+  <template #title>标题</template>
+</wd-card>
+
+<style lang="scss">
+.my-card { margin: 0 !important; }
+.my-card .wd-card__body { padding: 24rpx !important; }
+</style>
+```
 
 ### 避免使用伪元素
 
@@ -620,17 +803,37 @@ uni.createSelectorQuery().select("#app");
 
 ---
 
-## Part 10: 代码质量检查清单
+## Part 10: 反模式
 
+| 反模式 | 正确做法 |
+|--------|---------|
+| 硬编码颜色值 | 使用 `var(--color-*)` CSS 变量 |
+| 普通流内容设 z-index | 只有定位元素才设 |
+| `::deep([attr*="val"])` | 使用具体类名 |
+| Block 名过于通用（如 `.card`） | 使用页面/功能前缀（如 `.mine-card`） |
+| `height: 100vh` | 使用 `min-height: 100vh` |
+| z-index 魔法数字 | 使用 `var(--z-*)` |
+| SCSS 大量 `@apply` | 原子类留在模板 |
+| AI 蓝紫渐变 | 纯色或品牌色 |
+| Emoji 当图标 | SVG 图标或 Wot Design Icon |
+| 过度装饰（阴影+渐变+动画） | 最多一个装饰效果 |
+| 同一元素原子类 >3 个 | 归入 BEM 类 |
+
+---
+
+## Part 11: 代码质量检查清单
+
+- [ ] 页面根元素 `class="page"` + `min-height: 100vh`
 - [ ] 使用 wot-design-uni 组件（不自定义）
+- [ ] BEM 类名带页面前缀
 - [ ] 原子类 ≤3 个，>3 个用 BEM
 - [ ] 所有颜色使用 CSS 变量
+- [ ] 所有尺寸使用 rpx 单位
 - [ ] 暗黑模式正常工作
 - [ ] 卡片控制在 3-4 行
 - [ ] 信息层级清晰
 - [ ] 操作使用 `···` 更多按钮
 - [ ] 使用 UnoCSS 预设快捷类
-- [ ] 所有尺寸使用 rpx 单位
+- [ ] z-index 使用 `var(--z-*)`
 - [ ] 定义 TypeScript 类型
-- [ ] 避免伪元素
-- [ ] 避免使用 DOM API
+- [ ] 避免伪元素和 DOM API

@@ -1,17 +1,17 @@
 ---
-name: vue-admin
-description: Vue3 管理后台开发规范。当开发 Vue3 + Element Plus 管理后台、CRUD 页面、权限管理、自定义组件时使用此 skill。
+name: vue-element
+description: Vue3 + Element Plus admin development standards. Use this skill when developing Vue3 admin dashboards, CRUD pages, permission management, or custom components with Element Plus.
 ---
 
 # Vue3 管理后台开发规范
 
 ## 触发条件
 
-- 开发 Vue3 管理后台项目
-- 实现 CRUD 页面
-- 使用 Element Plus 组件
-- 实现权限管理
-- 创建自定义组件
+- Develop Vue3 admin dashboard projects
+- Implement CRUD pages
+- Use Element Plus components
+- Implement permission management
+- Create custom components
 
 ---
 
@@ -157,8 +157,40 @@ async function handleSubmit() {
 ### CSS 命名（BEM）
 
 ```
-Block__Element--Modifier
+block__element--modifier
+ │      │          │
+ │      │          └── 状态/变体（双连字符）
+ │      └── 组成部分（双下划线）
+ └── 页面前缀 + 功能实体
 ```
+
+**Block 必须带页面前缀**：
+
+```text
+用户管理(user)    → user-card / user-form / user-toolbar
+角色管理(role)    → role-card / role-permission / role-dialog
+设备授权(device)  → device-auth / device-auth__panel
+仪表盘(dashboard) → dashboard-stat / dashboard-chart
+```
+
+**Element 通用词汇**：
+
+| 语义 | 标准词汇 | 禁止 |
+|------|----------|------|
+| 头部 | `__header` | ~~head~~ / ~~top~~ |
+| 底部 | `__footer` | ~~bottom~~ |
+| 标题 | `__title` | ~~name~~ / ~~heading~~ |
+| 描述 | `__desc` | ~~text~~ / ~~detail~~ |
+| 图标 | `__icon` | ~~img~~ / ~~pic~~ |
+| 操作按钮 | `__action` | ~~action-btn~~ |
+| 操作区 | `__actions` | ~~btns~~ |
+| 内容 | `__body` | ~~content~~ |
+| 列表 | `__list` | ~~items~~ |
+| 列表项 | `__item` | ~~row~~ |
+| 面板 | `__panel` | ~~box~~ |
+| 标签 | `__tag` | ~~badge~~（徽章时用 badge） |
+
+**SCSS 嵌套**：
 
 ```scss
 .user-card {
@@ -169,6 +201,7 @@ Block__Element--Modifier
   &__header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
   }
 
   &__avatar {
@@ -180,10 +213,21 @@ Block__Element--Modifier
   &__name {
     font-size: 16px;
     font-weight: 600;
+    color: var(--el-text-color-primary);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
   }
 
   &--active {
     border: 2px solid var(--el-color-primary);
+  }
+
+  &--disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 ```
@@ -544,7 +588,158 @@ export const permission: Directive = {
 
 ---
 
-## Part 7: 代码质量检查清单
+## Part 8: 样式规范
+
+### 样式分层原则
+
+**BEM 定义语义，UnoCSS 补充微调，SCSS 只做脏活。**
+
+| 层级 | 职责 | 示例 |
+|------|------|------|
+| **BEM** | 组件语义锚点 | `user-card`、`user-card__header` |
+| **UnoCSS** | 简单布局微调（≤3 个属性） | `flex items-center gap-2` |
+| **SCSS** | 伪类/动画/穿透等原子类做不了的事 | `:deep()`、`@keyframes` |
+
+### 选型决策
+
+| 场景 | 方案 | 示例 |
+|------|------|------|
+| 简单布局（1-2 个属性） | 原子类 | `class="flex items-center"` |
+| 组件样式（3+ 属性） | BEM | `class="user-card"` |
+| 重复出现的组合 | UnoCSS Shortcuts 收敛 | `class="flex-center"` |
+| 主题相关 | CSS 变量 + BEM | `background: var(--el-color-primary-light-9)` |
+
+```vue
+<!-- ✅ 组件样式归 BEM，微调用原子类 -->
+<div class="user-card">
+  <el-avatar class="user-card__avatar" :src="user.avatar" />
+  <span class="user-card__name">{{ user.name }}</span>
+</div>
+
+<!-- ✅ 简单间距直接用原子类 -->
+<div class="mt-4 p-2">
+  <el-input v-model="keyword" placeholder="搜索" />
+</div>
+
+<!-- ❌ 同一元素混用过多原子类 + BEM -->
+<div class="user-card flex flex-col p-4 bg-white rounded-lg shadow-sm">
+</div>
+```
+
+### 主题变量
+
+**优先使用 Element Plus 内置 CSS 变量**，无需自定义主题色体系：
+
+| 类别 | 变量 | 说明 |
+|------|------|------|
+| 主色 | `--el-color-primary` | 主题蓝 |
+| 主色浅 | `--el-color-primary-light-3/5/7/8/9` | Element Plus 自动生成 |
+| 成功 | `--el-color-success` / `--el-color-success-light-*` | 绿色系 |
+| 警告 | `--el-color-warning` / `--el-color-warning-light-*` | 橙色系 |
+| 危险 | `--el-color-danger` / `--el-color-danger-light-*` | 红色系 |
+| 错误 | `--el-color-error` / `--el-color-error-light-*` | 红色系 |
+| 背景色 | `--el-bg-color` / `--el-bg-color-overlay` / `--el-bg-color-page` | 页面/浮层/底色 |
+| 文字色 | `--el-text-color-primary` / `--el-text-color-regular` / `--el-text-color-secondary` / `--el-text-color-placeholder` / `--el-text-color-disabled` | 层级递减 |
+| 边框色 | `--el-border-color` / `--el-border-color-light` / `--el-border-color-lighter` / `--el-border-color-extra-light` | 层级递减 |
+| 填充色 | `--el-fill-color` / `--el-fill-color-light` / `--el-fill-color-lighter` / `--el-fill-color-blank` | 背景填充 |
+
+**自定义变量**（项目级，定义在 `_theme.scss`）：
+
+| 变量 | 用途 |
+|------|------|
+| `--menu-background` | 侧边栏背景色 |
+| `--menu-text` | 菜单文字色 |
+| `--menu-active-text` | 菜单激活文字色 |
+| `--menu-hover` | 菜单 hover 背景色 |
+
+```scss
+// ✅ 使用 Element Plus 变量
+.card { background: var(--el-bg-color); border: 1px solid var(--el-border-color-lighter); }
+
+// ❌ 禁止硬编码
+.card { background: #ffffff; border: 1px solid #e5e7eb; }
+```
+
+### 布局类（全局）
+
+项目在 `_layout.scss` 中定义了标准布局类，**CRUD 页面必须使用**：
+
+| 类名 | 作用 | CSS |
+|------|------|-----|
+| `.page-container` | 页面容器 | `padding: 16px` |
+| `.page-content` | 内容区（el-card 根元素） | `display: flex; flex: 1; flex-direction: column` |
+| `.page-search` | 搜索栏 | 卡片样式 + 内边距覆盖 |
+| `.page-toolbar` | 工具栏 | `flex + space-between + gap` |
+| `.page-toolbar__left` | 工具栏左侧 | `flex + gap` |
+| `.page-toolbar__right` | 工具栏右侧 | `flex + gap` |
+
+**⚠️ 不要移除 `.page-content`**：该类提供 `display: flex; flex: 1; flex-direction: column`，删除会导致表格高度塌陷。
+
+### z-index 层级
+
+只有 `position: fixed/sticky/absolute` 且存在层叠竞争的元素才设 z-index，禁止魔法数字。
+
+```scss
+--z-dropdown: 100;   // 下拉菜单、Popover
+--z-sticky:   200;   // 吸顶栏
+--z-overlay:  300;   // 遮罩层
+--z-dialog:   500;   // Dialog / Drawer
+--z-toast:    600;   // Message / Notification
+```
+
+### 间距与圆角
+
+**间距**（4px 网格基数）：
+
+| 语义 | 值 | 场景 |
+|------|-----|------|
+| xs | `4px` | 图标与文字间距 |
+| sm | `8px` | 按钮间距、紧凑内边距 |
+| md | `16px` | 卡片内边距、模块间距 |
+| lg | `24px` | 区块间距 |
+
+**圆角**：
+
+| 场景 | 值 |
+|------|-----|
+| 小元素（Tag、Badge） | `4px` |
+| 按钮、输入框 | `var(--el-border-radius-base)` |
+| 卡片、Dialog | `var(--el-border-radius-base)` |
+
+### 阴影
+
+| 级别 | 值 | 场景 |
+|------|-----|------|
+| sm | `0 1px 2px rgba(0,0,0,0.05)` | 卡片 |
+| md | `0 4px 6px rgba(0,0,0,0.1)` | 弹窗 |
+| lg | `0 10px 15px rgba(0,0,0,0.1)` | 模态框 |
+
+### 反模式
+
+| 反模式 | 正确做法 |
+|--------|---------|
+| 硬编码颜色值 | 使用 `var(--el-*)` 变量 |
+| 移除 `.page-content` 类 | 保留，它提供关键 flex 布局 |
+| `:deep()` 滥用 | 优先使用 Element Plus 属性/插槽 |
+| Block 名过于通用（如 `.card`） | 使用页面/功能前缀（如 `.user-card`） |
+| `height: 100vh` | 使用 `min-height: 100vh` |
+| z-index 魔法数字 | 使用 `var(--z-*)` |
+| SCSS 大量 `@apply` | 原子类留在模板 |
+| 同一元素原子类 >3 个 | 归入 BEM 类 |
+| `:deep(.el-card__body)` 加 flex | el-card__body 保持默认 block 布局 |
+
+### 样式自查清单
+
+- [ ] BEM 类名带页面前缀
+- [ ] 颜色全部使用 CSS 变量
+- [ ] `.page-content` 保留（提供 flex 布局）
+- [ ] 模板中原子类 ≤ 3 个，超过则归入 BEM
+- [ ] z-index 使用 `var(--z-*)`，普通流内容未设 z-index
+- [ ] 不对 `.el-card__body` 加 flex 覆盖
+
+---
+
+## Part 9: 代码质量检查清单
 
 - [ ] 使用 TypeScript 严格模式
 - [ ] 为所有变量和函数定义类型
@@ -557,4 +752,7 @@ export const permission: Directive = {
 - [ ] 组件保持在 300 行以内
 - [ ] 使用 `<script setup>` 语法
 - [ ] API 按模块组织
-- [ ] 使用 BEM 命名 CSS
+- [ ] BEM 命名带页面前缀
+- [ ] 颜色使用 `var(--el-*)` 变量
+- [ ] 保留 `.page-content` 布局类
+- [ ] 原子类 ≤3 个，超过用 BEM
