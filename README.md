@@ -1,6 +1,6 @@
 # youlai-skills
 
-全栈开发 AI Agent Skills，包含 Vue3 管理后台、UniApp 移动端、6 大后端框架（Spring Boot、NestJS、Gin、Django、ThinkPHP、ASP.NET Core）及 MySQL 数据库设计规范。
+全栈开发 AI Agent Skills，包含 Vue3 管理后台、UniApp 移动端、8 大后端框架（Spring Boot、NestJS、Gin、Django、FastAPI、ThinkPHP、ASP.NET Core、Rust Axum）及 MySQL 数据库设计规范。
 
 ## Skills 列表
 
@@ -19,8 +19,10 @@
 | [`nestjs`](https://skills.sh/youlaitech/youlai-skills/nestjs) | Node.js 后端开发规范 | NestJS + TypeORM |
 | [`gin`](https://skills.sh/youlaitech/youlai-skills/gin) | Go 后端开发规范 | Gin + GORM |
 | [`django`](https://skills.sh/youlaitech/youlai-skills/django) | Python 后端开发规范 | Django REST Framework |
+| [`fastapi`](https://skills.sh/youlaitech/youlai-skills/fastapi) | Python 异步后端开发规范 | FastAPI + SQLAlchemy async |
 | [`thinkphp`](https://skills.sh/youlaitech/youlai-skills/thinkphp) | PHP 后端开发规范 | ThinkPHP 8 |
 | [`aspnet`](https://skills.sh/youlaitech/youlai-skills/aspnet) | .NET 后端开发规范 | ASP.NET Core 8 |
+| [`rust`](https://skills.sh/youlaitech/youlai-skills/rust) | Rust 异步后端开发规范 | Axum + SeaORM + PostgreSQL |
 
 ### 数据库
 
@@ -52,8 +54,10 @@ Skills 根据项目类型自动触发：
 | Node.js NestJS    | `nestjs`       |
 | Go Gin            | `gin`          |
 | Python Django     | `django`       |
+| Python FastAPI    | `fastapi`      |
 | PHP ThinkPHP      | `thinkphp`     |
 | .NET ASP.NET Core | `aspnet`       |
+| Rust Axum         | `rust`         |
 | 数据库设计        | `mysql-design` |
 | Git 版本管理      | `git-version`  |
 
@@ -90,8 +94,10 @@ youlai-skills/
     ├── nestjs/SKILL.md
     ├── gin/SKILL.md
     ├── django/SKILL.md
+    ├── fastapi/SKILL.md
     ├── thinkphp/SKILL.md
     ├── aspnet/SKILL.md
+    ├── rust/SKILL.md
     ├── mysql-design/SKILL.md
     └── git-version/SKILL.md
 ```

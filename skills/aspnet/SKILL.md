@@ -17,13 +17,15 @@ description: ASP.NET Core backend development standards. Use this skill when dev
 
 ## Part 1: 技术栈
 
-- **.NET** - 运行环境
-- **ASP.NET Core** - Web 框架
-- **EF Core** - ORM 框架
-- **MySQL** - 数据库
-- **Redis** - 缓存
-- **JWT** - Token 认证
-- **Swashbuckle** - API 文档
+| 层 | 选型 | 说明 |
+|----|------|------|
+| 运行环境 | **.NET 8+** | 跨平台运行时 |
+| Web 框架 | **ASP.NET Core** | 内置依赖注入、中间件管道 |
+| ORM | **Entity Framework Core** | LINQ 查询、Code First、迁移 |
+| 数据库 | **MySQL 8.x** | InnoDB 引擎 |
+| 缓存 | **Redis 7.x** | 分布式缓存 |
+| 认证 | **JWT** (Microsoft.AspNetCore.Authentication.JwtBearer) | Token 认证 |
+| API 文档 | **Swashbuckle** | OpenAPI 生成 |
 
 ---
 
@@ -31,242 +33,126 @@ description: ASP.NET Core backend development standards. Use this skill when dev
 
 ```
 src/
-├── Youlai.Api/                     # API 层
+├── Youlai.Api/                     # API 层（Controller + 中间件）
 │   ├── Program.cs                  # 启动配置
-│   ├── appsettings.json
-│   ├── Controllers/                # 控制器（按模块分目录，复数命名）
-│   │   ├── Auth/
-│   │   │   ├── AuthController.cs
-│   │   │   └── WxMaAuthController.cs
-│   │   ├── System/
-│   │   │   ├── UsersController.cs
-│   │   │   ├── RolesController.cs
-│   │   │   ├── MenusController.cs
-│   │   │   ├── DeptsController.cs
-│   │   │   ├── DictsController.cs
-│   │   │   ├── ConfigsController.cs
-│   │   │   ├── NoticesController.cs
-│   │   │   └── LogsController.cs
-│   │   ├── Codegen/
-│   │   │   └── CodegenController.cs
-│   │   ├── File/
-│   │   │   └── FilesController.cs
-│   │   └── Message/
-│   │       └── SseController.cs
-│   ├── Converters/                 # JSON 转换器
-│   │   └── Int64ToStringJsonConverter.cs
-│   ├── Filters/                    # 过滤器
-│   │   └── LogActionFilter.cs
-│   ├── Middlewares/                # 中间件（复数 s）
-│   │   ├── ExceptionHandlingMiddleware.cs
-│   │   └── RateLimitMiddleware.cs
-│   ├── Security/                   # HTTP 授权
-│   │   ├── CurrentUser.cs
-│   │   ├── HasPermAttribute.cs
-│   │   ├── JwtExtensions.cs
-│   │   ├── PermissionAuthorizationHandler.cs
-│   │   ├── PermissionPolicyProvider.cs
-│   │   └── PermissionRequirement.cs
-│   └── Swagger/
-│       └── FileUploadOperationFilter.cs
+│   ├── Controllers/                # 按模块分目录，复数命名
+│   │   ├── Auth/{AuthController, WxMaAuthController}
+│   │   ├── System/{UsersController, RolesController, MenusController, ...}
+│   │   ├── Codegen/{CodegenController}
+│   │   ├── File/{FilesController}
+│   │   └── Message/{SseController}
+│   ├── Filters/                    # LogActionFilter
+│   ├── Middlewares/                # ExceptionHandlingMiddleware, RateLimitMiddleware
+│   ├── Security/                   # CurrentUser, HasPermAttribute, JwtExtensions, PermissionAuthorizationHandler
+│   └── Swagger/                    # FileUploadOperationFilter
 │
-├── Youlai.Application/            # 应用层
-│   ├── DependencyInjection.cs      # DI 注册
-│   ├── Attributes/
-│   │   └── LogAttribute.cs
-│   ├── Auth/                       # 认证业务
-│   │   ├── IAuthService.cs
-│   │   ├── AuthService.cs
-│   │   ├── ICaptchaService.cs
-│   │   ├── CaptchaService.cs
-│   │   ├── IWxMaAuthService.cs
-│   │   ├── WxMaAuthService.cs
-│   │   ├── JwtClaimConstants.cs
-│   │   └── Models/
-│   │       ├── LoginRequestDto.cs
-│   │       ├── AuthenticationTokenDto.cs
-│   │       ├── CaptchaInfoDto.cs
-│   │       └── WxMaLoginResultDto.cs
-│   ├── Codegen/                    # 代码生成业务
-│   │   ├── ICodegenService.cs
-│   │   ├── CodegenService.cs
-│   │   └── Models/
-│   │       ├── CodegenTableDto.cs
-│   │       ├── CodegenPreviewDto.cs
-│   │       ├── CodegenTableQuery.cs
-│   │       ├── FieldConfigDto.cs
-│   │       └── GenConfigFormDto.cs
-│   ├── Common/                     # 通用服务
-│   │   ├── ILoggingService.cs
-│   │   ├── LoggingService.cs
-│   │   ├── ISseService.cs
-│   │   ├── SseService.cs
-│   │   ├── SseMessage.cs
-│   │   └── UserAgentParser.cs
-│   ├── Constants/
-│   │   ├── DevDefaults.cs
-│   │   └── RedisKeyConstants.cs
-│   ├── Exceptions/
-│   │   └── BusinessException.cs
-│   ├── Extensions/
-│   │   ├── CollectionExtensions.cs
-│   │   ├── CurrentUserExtensions.cs
-│   │   └── QueryableExtensions.cs
-│   ├── File/                       # 文件业务
-│   │   ├── IFileService.cs
-│   │   ├── FileService.cs
-│   │   ├── IFileStorage.cs
-│   │   └── FileInfoDto.cs
-│   ├── Models/                     # 通用基础模型
-│   │   ├── BaseQuery.cs
-│   │   ├── ExcelResult.cs
-│   │   ├── KeyValue.cs
-│   │   └── Option.cs
-│   ├── Options/                    # 配置选项
-│   │   ├── SecurityOptions.cs
-│   │   ├── DatabaseOptions.cs
-│   │   ├── RedisOptions.cs
-│   │   ├── CaptchaOptions.cs
-│   │   ├── OssOptions.cs
-│   │   └── WxMaOptions.cs
-│   ├── Persistence/
-│   │   └── IDbContext.cs          # 数据上下文接口
-│   ├── Results/                    # 统一响应
-│   │   ├── IResultCode.cs
-│   │   ├── ResultCode.cs
-│   │   ├── Result.cs
-│   │   └── PageResult.cs
-│   ├── Security/                   # 业务权限
-│   │   ├── ICurrentUser.cs
-│   │   ├── JwtTokenManager.cs
-│   │   ├── DataPermissionService.cs
-│   │   ├── IRolePermissionService.cs
-│   │   ├── RolePermissionService.cs
-│   │   ├── IRolePermsCacheInvalidator.cs
-│   │   ├── RolePermsCacheInvalidator.cs
-│   │   ├── SecurityConstants.cs
-│   │   └── Models/
-│   │       ├── DataScope.cs
-│   │       ├── RoleDataScope.cs
-│   │       └── UserSession.cs
-│   └── System/                     # 系统管理业务
-│       ├── ISystemUserService.cs
-│       ├── SystemUserService.cs
-│       ├── ISystemRoleService.cs
-│       ├── SystemRoleService.cs
-│       ├── ISystemMenuService.cs
-│       ├── SystemMenuService.cs
-│       ├── ISystemDeptService.cs
-│       ├── SystemDeptService.cs
-│       ├── ISystemDictService.cs
-│       ├── SystemDictService.cs
-│       ├── ISystemConfigService.cs
-│       ├── SystemConfigService.cs
-│       ├── ISystemNoticeService.cs
-│       ├── SystemNoticeService.cs
-│       ├── ISystemLogService.cs
-│       ├── SystemLogService.cs
-│       └── Models/                 # 按实体分子目录
-│           ├── User/               # UserForm, UserPageVo, UserQuery, CurrentUserDto 等
-│           ├── Role/               # RoleForm, RolePageVo, RoleQuery
-│           ├── Menu/               # MenuForm, MenuVo, MenuQuery, RouteVo
-│           ├── Dept/               # DeptForm, DeptVo, DeptQuery
-│           ├── Dict/               # DictForm, DictPageVo, DictQuery + DictItem 系列
-│           ├── Config/             # ConfigForm, ConfigPageVo, ConfigQuery
-│           ├── Notice/             # NoticeForm, NoticePageVo, NoticeQuery, NoticeDetailVo
-│           ├── Log/                # LogPageVo, LogQuery
-│           └── Statistics/         # VisitStatsVo, VisitTrendVo, VisitTrendQuery
+├── Youlai.Application/            # 应用层（Service + DTO）
+│   ├── DependencyInjection.cs
+│   ├── Auth/                       # IAuthService, AuthService, WxMaAuthService + Models/
+│   ├── Common/                     # ILoggingService, SseService
+│   ├── Constants/                  # RedisKeyConstants
+│   ├── Exceptions/                 # BusinessException
+│   ├── Options/                    # SecurityOptions, RedisOptions, WxMaOptions
+│   ├── Results/                    # Result, PageResult, ResultCode
+│   ├── Security/                   # ICurrentUser, JwtTokenManager, DataPermissionService + Models/
+│   └── System/                     # IUserService, UserService 等 + Models/{User,Role,Menu,Dept,...}/
 │
 ├── Youlai.Domain/                  # 领域层（最薄，无依赖）
-│   ├── Entities/                   # 实体（SysUser, SysRole, SysMenu 等）
-│   └── Enums/                      # 枚举（ActionType, LogModule, MenuType）
+│   ├── Entities/                   # SysUser, SysRole, SysMenu 等
+│   └── Enums/                      # ActionType, LogModule, MenuType
 │
 ├── Youlai.Infrastructure/          # 基础设施层
 │   ├── DependencyInjection.cs
-│   ├── Persistence/
-│   │   └── AppDbContext.cs         # EF Core 上下文
-│   ├── FileStorage/                # 文件存储实现
-│   │   ├── LocalFileStorage.cs
-│   │   ├── AliyunFileStorage.cs
-│   │   └── MinioFileStorage.cs
-│   └── CodegenTemplates/           # Scriban 代码生成模板
-│       ├── backend/                # controller.cs.sbn, entity.cs.sbn, form.cs.sbn 等
-│       └── frontend/               # js/ + ts/ 模板
+│   ├── Persistence/AppDbContext.cs
+│   ├── FileStorage/                # LocalFileStorage, MinioFileStorage
+│   └── CodegenTemplates/           # Scriban 模板
 │
-└── tests/
-    └── Youlai.Api.Tests/           # 集成测试
+└── tests/Youlai.Api.Tests/         # 集成测试
 ```
+
+**设计原则**：
+- `Youlai.Domain` 是最薄层，不依赖任何层
+- `Youlai.Application` 依赖 `Domain`，不依赖 `Api` 和 `Infrastructure`
+- `Youlai.Infrastructure` 实现接口，依赖 `Application`
+- `Youlai.Api` 作为入口，组合所有层
 
 ---
 
 ## Part 3: 命名规范
 
-### 文件命名
+### 3.1 文件命名
 
-| 类型   | 规范            | 示例                       |
-| ------ | --------------- | -------------------------- |
-| 控制器 | PascalCase      | `UserController.cs`        |
-| 服务   | I + PascalCase  | `IUserService.cs`          |
-| 实体   | PascalCase      | `SysUser.cs`               |
-| DTO    | 功能 + DTO 类型 | `UserVO.cs`, `UserForm.cs` |
-| 接口   | I + PascalCase  | `IUserRepository.cs`       |
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| Controller | `{Entity}Controller.cs` | `UserController.cs` |
+| Service 接口 | `I{Entity}Service.cs` | `IUserService.cs` |
+| Service 实现 | `{Entity}Service.cs` | `UserService.cs` |
+| Entity | PascalCase | `SysUser.cs` |
+| DTO | 功能 + 类型后缀 | `UserForm.cs`, `UserVO.cs` |
+| Enums | PascalCase + 无后缀 | `ActionType.cs` |
 
-### 类命名
+### 3.2 类命名
 
-| 类型     | 规范               | 示例                 |
-| -------- | ------------------ | -------------------- |
-| 控制器   | 实体 + Controller  | `UserController`     |
-| 服务接口 | I + 实体 + Service | `IUserService`       |
-| 服务实现 | 实体 + Service     | `UserService`        |
-| 实体     | PascalCase         | `SysUser`            |
-| DTO      | 功能 + 类型        | `UserVO`, `UserForm` |
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| Controller | `{Entity}Controller` | `UserController` |
+| Service 接口 | `I{Entity}Service` | `IUserService` |
+| Service 实现 | `{Entity}Service` | `UserService` |
+| Entity | PascalCase | `SysUser` |
+| DTO | 功能 + 类型 | `UserVO`, `UserForm`, `UserPageQuery` |
 
-### 方法命名
+**DTO 后缀规范**：
 
-| 动作     | 前缀   | 示例                |
-| -------- | ------ | ------------------- |
-| 查询单个 | Get    | `GetByIdAsync()`    |
-| 查询列表 | List   | `ListUsersAsync()`  |
-| 分页查询 | Page   | `PageUsersAsync()`  |
-| 新增     | Create | `CreateUserAsync()` |
-| 更新     | Update | `UpdateUserAsync()` |
-| 删除     | Delete | `DeleteUserAsync()` |
+| 后缀 | 用途 | 示例 |
+|------|------|------|
+| `VO` | 视图对象（返回前端） | `UserVO`, `RolePageVO` |
+| `Form` / `RequestDto` | 表单/请求对象 | `UserForm`, `LoginRequestDto` |
+| `Query` | 查询参数 | `UserQuery`, `RolePageQuery` |
+| `Dto` | 传输对象 | `CurrentUserDto`, `ExcelResultDto` |
 
-### 变量命名
+### 3.3 方法命名
 
-| 类型     | 规范                           | 示例                         |
-| -------- | ------------------------------ | ---------------------------- |
-| 局部变量 | camelCase                      | `userList`                   |
-| 常量     | PascalCase 或 UPPER_SNAKE_CASE | `MaxSize` 或 `MAX_SIZE`      |
-| 私有字段 | \_ 前缀                        | `_userService`               |
-| 布尔值   | Is/Has/Can 前缀                | `IsDeleted`, `HasPermission` |
+| 动作 | 前缀 | 示例 |
+|------|------|------|
+| 查询单个 | Get | `GetByIdAsync()` |
+| 查询列表 | List | `ListUsersAsync()` |
+| 分页查询 | Page | `PageUsersAsync()` |
+| 新增 | Create | `CreateUserAsync()` |
+| 更新 | Update | `UpdateUserAsync()` |
+| 删除 | Delete | `DeleteUserAsync()` |
+| 下拉选项 | GetXxxOptions | `GetUserOptionsAsync()` |
+
+### 3.4 变量命名
+
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| 局部变量 | camelCase | `userList` |
+| 常量 | PascalCase | `MaxSize` |
+| 私有字段 | `_` 前缀 camelCase | `_userService` |
+| 布尔值 | Is/Has/Can 前缀 | `IsDeleted`, `HasPermission` |
+
+> ⚠️ ASP.NET Core 约定私有字段用 `_` 前缀（与 Spring Boot 不同），与官方文档和 EF Core 一致。
 
 ---
 
 ## Part 4: RESTful API 规范
 
-### 标准 CRUD 路径
+### 4.1 标准 CRUD 路径
 
-| 操作     | 方法   | 路径                    |
-| -------- | ------ | ----------------------- |
-| 分页列表 | GET    | `/api/v1/users/page`    |
-| 详情     | GET    | `/api/v1/users/{id}`    |
-| 新增     | POST   | `/api/v1/users`         |
-| 更新     | PUT    | `/api/v1/users`         |
-| 删除     | DELETE | `/api/v1/users/{id}`    |
-| 批量删除 | DELETE | `/api/v1/users/batch`   |
-| 下拉选项 | GET    | `/api/v1/users/options` |
+| 操作 | 方法 | 路径 | 说明 |
+|------|------|------|------|
+| 分页列表 | `GET` | `/api/v1/users/page` | Query 参数 |
+| 详情 | `GET` | `/api/v1/users/{id}` | 路径参数 |
+| 表单数据 | `GET` | `/api/v1/users/{id}/form` | 编辑回显 |
+| 新增 | `POST` | `/api/v1/users` | Body: `UserForm` |
+| 更新 | `PUT` | `/api/v1/users` | Body: `UserForm` |
+| 删除 | `DELETE` | `/api/v1/users/{id}` | 路径参数 |
+| 批量删除 | `DELETE` | `/api/v1/users/batch` | Body: `List<long>` |
+| 下拉选项 | `GET` | `/api/v1/users/options` | 返回 `List<OptionType>` |
 
-### Controller 模板
+### 4.2 Controller 模板
 
 ```csharp
-// Controllers/System/UserController.cs
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
-
-namespace Youlai.Api.Controllers.System;
-
 [ApiController]
 [Route("api/v1/users")]
 [ApiExplorerSettings(GroupName = "用户管理")]
@@ -274,39 +160,19 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
 
-    public UserController(IUserService userService)
-    {
+    public UserController(IUserService userService) =>
         _userService = userService;
-    }
 
     [HttpGet("page")]
     [SwaggerOperation(Summary = "用户分页列表")]
-    public async Task<Result<PageResult<UserVO>>> Page([FromQuery] UserPageQuery query)
-    {
-        return Result.Success(await _userService.PageUsersAsync(query));
-    }
-
-    [HttpGet("{id}")]
-    [SwaggerOperation(Summary = "用户详情")]
-    public async Task<Result<UserVO>> GetById(long id)
-    {
-        return Result.Success(await _userService.GetUserByIdAsync(id));
-    }
-
-    [HttpGet("{id}/form")]
-    [SwaggerOperation(Summary = "用户表单数据")]
-    public async Task<Result<UserForm>> GetFormData(long id)
-    {
-        return Result.Success(await _userService.GetUserFormDataAsync(id));
-    }
+    public async Task<Result<PageResult<UserVO>>> Page([FromQuery] UserPageQuery query) =>
+        Result.Success(await _userService.PageUsersAsync(query));
 
     [HttpPost]
     [SwaggerOperation(Summary = "新增用户")]
     [Authorize(Policy = "sys:user:add")]
-    public async Task<Result<long>> Create([FromBody] UserForm form)
-    {
-        return Result.Success(await _userService.CreateUserAsync(form));
-    }
+    public async Task<Result<long>> Create([FromBody] UserForm form) =>
+        Result.Success(await _userService.CreateUserAsync(form));
 
     [HttpPut]
     [SwaggerOperation(Summary = "更新用户")]
@@ -326,72 +192,69 @@ public class UserController : ControllerBase
         return Result.Success();
     }
 
-    [HttpDelete("batch")]
-    [SwaggerOperation(Summary = "批量删除用户")]
-    [Authorize(Policy = "sys:user:delete")]
-    public async Task<Result> BatchDelete([FromBody] List<long> ids)
-    {
-        await _userService.DeleteUsersAsync(ids);
-        return Result.Success();
-    }
-
     [HttpGet("options")]
     [SwaggerOperation(Summary = "用户选项列表")]
-    public async Task<Result<List<OptionType>>> Options()
-    {
-        return Result.Success(await _userService.GetUserOptionsAsync());
-    }
+    public async Task<Result<List<OptionType>>> Options() =>
+        Result.Success(await _userService.GetUserOptionsAsync());
 }
 ```
 
 ---
 
-## Part 5: 响应格式
+## Part 5: 响应格式与异常处理
+
+### 5.1 统一响应
 
 ```csharp
-// Youlai.Common/Models/Result.cs
-namespace Youlai.Common.Models;
-
 public class Result<T>
 {
     public int Code { get; set; }
     public string Msg { get; set; } = string.Empty;
     public T? Data { get; set; }
 
-    public static Result<T> Success(T? data = default)
-    {
-        return new Result<T>
-        {
-            Code = 200,
-            Msg = "操作成功",
-            Data = data
-        };
-    }
-
-    public static Result<T> Failed(int code, string msg)
-    {
-        return new Result<T>
-        {
-            Code = code,
-            Msg = msg,
-            Data = default
-        };
-    }
+    public static Result<T> Success(T? data = default) => new() { Code = 200, Msg = "操作成功", Data = data };
+    public static Result<T> Failed(int code, string msg) => new() { Code = code, Msg = msg };
 }
 
-// Youlai.Common/Models/PageResult.cs
 public class PageResult<T>
 {
     public List<T> List { get; set; } = [];
     public long Total { get; set; }
 
-    public static PageResult<T> Of(List<T> list, long total)
+    public static PageResult<T> Of(List<T> list, long total) => new() { List = list, Total = total };
+}
+```
+
+### 5.2 业务异常
+
+```csharp
+public class BusinessException : Exception
+{
+    public BusinessException(string message) : base(message) { }
+}
+```
+
+### 5.3 全局异常处理
+
+```csharp
+public class ExceptionMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public ExceptionMiddleware(RequestDelegate next) => _next = next;
+
+    public async Task InvokeAsync(HttpContext context)
     {
-        return new PageResult<T>
-        {
-            List = list,
-            Total = total
-        };
+        try { await _next(context); }
+        catch (BusinessException ex) { await WriteResult(context, 200, ex.Message); }
+        catch (Exception ex) { await WriteResult(context, 500, "系统异常"); }
+    }
+
+    private static async Task WriteResult(HttpContext context, int code, string msg)
+    {
+        context.Response.StatusCode = 200;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync(JsonSerializer.Serialize(new { Code = code, Msg = msg, Data = (object?)null }));
     }
 }
 ```
@@ -400,78 +263,24 @@ public class PageResult<T>
 
 ## Part 6: 实体规范
 
-### 基础实体
-
 ```csharp
-// Youlai.Domain/Entities/BaseEntity.cs
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Youlai.Domain.Entities;
-
 public abstract class BaseEntity
 {
-    [Key]
-    [Column("id")]
-    public long Id { get; set; }
-
-    [Column("create_time")]
-    public DateTime CreateTime { get; set; } = DateTime.Now;
-
-    [Column("update_time")]
-    public DateTime UpdateTime { get; set; } = DateTime.Now;
-
-    [Column("create_by")]
-    public long? CreateBy { get; set; }
-
-    [Column("update_by")]
-    public long? UpdateBy { get; set; }
-
-    [Column("deleted")]
-    public bool Deleted { get; set; } = false;
+    [Key][Column("id")] public long Id { get; set; }
+    [Column("create_time")] public DateTime CreateTime { get; set; } = DateTime.Now;
+    [Column("update_time")] public DateTime UpdateTime { get; set; } = DateTime.Now;
+    [Column("deleted")] public bool Deleted { get; set; } = false;
 }
-```
-
-### 实体示例
-
-```csharp
-// Youlai.Domain/Entities/SysUser.cs
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Youlai.Domain.Entities;
 
 [Table("sys_user")]
 public class SysUser : BaseEntity
 {
-    [Required]
-    [MaxLength(50)]
-    [Column("username")]
-    public string Username { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(100)]
-    [Column("password")]
-    public string Password { get; set; } = string.Empty;
-
-    [Required]
-    [MaxLength(50)]
-    [Column("nickname")]
-    public string Nickname { get; set; } = string.Empty;
-
-    [MaxLength(20)]
-    [Column("mobile")]
-    public string? Mobile { get; set; }
-
-    [MaxLength(100)]
-    [Column("email")]
-    public string? Email { get; set; }
-
-    [Column("status")]
-    public int Status { get; set; } = 1;
-
-    [Column("dept_id")]
-    public long? DeptId { get; set; }
+    [Required][MaxLength(50)][Column("username")] public string Username { get; set; } = "";
+    [Required][MaxLength(100)][Column("password")] public string Password { get; set; } = "";
+    [Required][MaxLength(50)][Column("nickname")] public string Nickname { get; set; } = "";
+    [MaxLength(20)][Column("mobile")] public string? Mobile { get; set; }
+    [Column("status")] public int Status { get; set; } = 1;
+    [Column("dept_id")] public long? DeptId { get; set; }
 }
 ```
 
@@ -480,9 +289,6 @@ public class SysUser : BaseEntity
 ## Part 7: Service 规范
 
 ```csharp
-// Youlai.Application/Services/IUserService.cs
-namespace Youlai.Application.Services;
-
 public interface IUserService
 {
     Task<PageResult<UserVO>> PageUsersAsync(UserPageQuery query);
@@ -491,85 +297,37 @@ public interface IUserService
     Task<long> CreateUserAsync(UserForm form);
     Task UpdateUserAsync(UserForm form);
     Task DeleteUserAsync(long id);
-    Task DeleteUsersAsync(List<long> ids);
-    Task<List<OptionType>> GetUserOptionsAsync();
 }
-
-// Youlai.Application/Services/UserService.cs
-using Microsoft.EntityFrameworkCore;
-
-namespace Youlai.Application.Services;
 
 public class UserService : IUserService
 {
     private readonly AppDbContext _context;
 
-    public UserService(AppDbContext context)
-    {
-        _context = context;
-    }
+    public UserService(AppDbContext context) => _context = context;
 
     public async Task<PageResult<UserVO>> PageUsersAsync(UserPageQuery query)
     {
-        var queryable = _context.Users
-            .Where(u => !u.Deleted);
-
+        var q = _context.Users.Where(u => !u.Deleted);
         if (!string.IsNullOrEmpty(query.Keywords))
-        {
-            queryable = queryable.Where(u =>
-                u.Username.Contains(query.Keywords) ||
-                u.Nickname.Contains(query.Keywords));
-        }
-
+            q = q.Where(u => u.Username.Contains(query.Keywords));
         if (query.Status.HasValue)
-        {
-            queryable = queryable.Where(u => u.Status == query.Status.Value);
-        }
+            q = q.Where(u => u.Status == query.Status.Value);
 
-        var total = await queryable.CountAsync();
-
-        var list = await queryable
-            .OrderByDescending(u => u.CreateTime)
-            .Skip((query.PageNum - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .Select(u => new UserVO
-            {
-                Id = u.Id,
-                Username = u.Username,
-                Nickname = u.Nickname,
-                Mobile = u.Mobile,
-                Email = u.Email,
-                Status = u.Status,
-                CreateTime = u.CreateTime
-            })
+        var total = await q.CountAsync();
+        var list = await q.OrderByDescending(u => u.CreateTime)
+            .Skip((query.PageNum - 1) * query.PageSize).Take(query.PageSize)
+            .Select(u => new UserVO { Id = u.Id, Username = u.Username, Status = u.Status, CreateTime = u.CreateTime })
             .ToListAsync();
-
         return PageResult<UserVO>.Of(list, total);
     }
 
     public async Task<long> CreateUserAsync(UserForm form)
     {
-        var exists = await _context.Users
-            .AnyAsync(u => u.Username == form.Username && !u.Deleted);
-
-        if (exists)
-        {
+        if (await _context.Users.AnyAsync(u => u.Username == form.Username && !u.Deleted))
             throw new BusinessException("用户名已存在");
-        }
-
-        var user = new SysUser
-        {
-            Username = form.Username,
-            Password = BCrypt.HashPassword(form.Password),
-            Nickname = form.Nickname,
-            Mobile = form.Mobile,
-            Email = form.Email,
-            Status = form.Status
-        };
-
+        var user = new SysUser { Username = form.Username, Password = BCrypt.HashPassword(form.Password), Status = form.Status };
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-
         return user.Id;
     }
 }
@@ -579,89 +337,38 @@ public class UserService : IUserService
 
 ## Part 8: 认证规范
 
-### JWT 配置
+### 8.1 JWT 配置
 
 ```csharp
-// Program.cs
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters {
             ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
         };
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("sys:user:add", policy => policy.RequireClaim("permission", "sys:user:add"));
-    options.AddPolicy("sys:user:edit", policy => policy.RequireClaim("permission", "sys:user:edit"));
-    options.AddPolicy("sys:user:delete", policy => policy.RequireClaim("permission", "sys:user:delete"));
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("sys:user:add", p => p.RequireClaim("permission", "sys:user:add"));
+    options.AddPolicy("sys:user:edit", p => p.RequireClaim("permission", "sys:user:edit"));
 });
 ```
 
-### JWT 服务
+### 8.2 权限校验
 
 ```csharp
-// Youlai.Infrastructure/Security/JwtService.cs
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
+// Controller 中使用 Policy 进行权限校验
+[Authorize(Policy = "sys:user:add")]
 
-namespace Youlai.Infrastructure.Security;
-
-public class JwtService
-{
-    private readonly IConfiguration _config;
-
-    public JwtService(IConfiguration config)
-    {
-        _config = config;
-    }
-
-    public string GenerateAccessToken(long userId, string username, List<string> permissions)
-    {
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new(JwtRegisteredClaimNames.UniqueName, username),
-            new("permission", string.Join(",", permissions))
-        };
-
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            claims: claims,
-            expires: DateTime.Now.AddHours(2),
-            signingCredentials: creds);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-}
+// 权限标识命名：模块:实体:操作
+// sys:user:create / sys:user:edit / sys:user:delete / sys:role:list / sys:menu:assign
 ```
 
-### 当前用户
+### 8.3 当前用户
 
 ```csharp
-// Youlai.Infrastructure/Security/CurrentUser.cs
-using System.Security.Claims;
-
-namespace Youlai.Infrastructure.Security;
-
 public interface ICurrentUser
 {
     long UserId { get; }
@@ -671,80 +378,36 @@ public interface ICurrentUser
 
 public class CurrentUser : ICurrentUser
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public CurrentUser(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
-    public long UserId =>
-        long.Parse(_httpContextAccessor.HttpContext?.User?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? "0");
-
-    public string Username =>
-        _httpContextAccessor.HttpContext?.User?.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value ?? "";
-
-    public List<string> Permissions =>
-        _httpContextAccessor.HttpContext?.User?.FindFirst("permission")?.Value?.Split(',').ToList() ?? [];
+    public long UserId => long.Parse(HttpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? "0");
+    public string Username => HttpContext.User.FindFirst(JwtRegisteredClaimNames.UniqueName)?.Value ?? "";
+    public List<string> Permissions => HttpContext.User.FindFirst("permission")?.Value?.Split(',').ToList() ?? [];
 }
 ```
 
 ---
 
-## Part 9: 异常处理
+## Part 9: 注释规范
+
+- **公共方法用 `/// <summary>` XML 注释**（IDE 智能提示可识别）
+- Swagger 使用 `[SwaggerOperation(Summary = "...")]`
+- 代码修改时注释必须同步更新
 
 ```csharp
-// Youlai.Api/Middleware/ExceptionMiddleware.cs
-using System.Net;
-using System.Text.Json;
-
-namespace Youlai.Api.Middleware;
-
-public class ExceptionMiddleware
+/// <summary>
+/// 用户管理控制器。
+/// </summary>
+[ApiExplorerSettings(GroupName = "用户管理")]
+public class UserController : ControllerBase
 {
-    private readonly RequestDelegate _next;
-
-    public ExceptionMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
-    public async Task InvokeAsync(HttpContext context)
-    {
-        try
-        {
-            await _next(context);
-        }
-        catch (BusinessException ex)
-        {
-            await HandleExceptionAsync(context, (int)HttpStatusCode.OK, ex.Message);
-        }
-        catch (Exception ex)
-        {
-            await HandleExceptionAsync(context, (int)HttpStatusCode.InternalServerError, "系统异常");
-        }
-    }
-
-    private static async Task HandleExceptionAsync(HttpContext context, int code, string msg)
-    {
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = 200;
-
-        var result = new
-        {
-            Code = code,
-            Msg = msg,
-            Data = (object?)null
-        };
-
-        await context.Response.WriteAsync(JsonSerializer.Serialize(result));
-    }
-}
-
-// Youlai.Application/Exceptions/BusinessException.cs
-public class BusinessException : Exception
-{
-    public BusinessException(string message) : base(message) { }
+    /// <summary>
+    /// 创建新用户。
+    /// </summary>
+    /// <param name="form">用户表单（username 必填且唯一）</param>
+    /// <returns>新用户 ID</returns>
+    /// <exception cref="BusinessException">用户名已存在</exception>
+    [HttpPost]
+    [SwaggerOperation(Summary = "新增用户")]
+    public async Task<Result<long>> Create([FromBody] UserForm form) { ... }
 }
 ```
 
@@ -754,14 +417,22 @@ public class BusinessException : Exception
 
 - [ ] 遵循 RESTful API 路径规范
 - [ ] 使用统一响应格式
-- [ ] 实现全局异常处理
-- [ ] 添加权限策略
-- [ ] 分页接口使用 PageResult
-- [ ] 参数校验使用数据注解
-- [ ] 重要操作记录日志
-- [ ] 使用事务处理
-- [ ] 实体继承 BaseEntity
-- [ ] 使用 EF Core 软删除
-- [ ] API 添加 SwaggerOperation 注解
+- [ ] 实现全局异常处理中间件
+- [ ] 权限校验使用 `Authorize(Policy = "...")`
+- [ ] 分页接口使用 `PageResult`
+- [ ] 实体继承 `BaseEntity`
+- [ ] 使用 EF Core 逻辑删除
+- [ ] API 添加 `[SwaggerOperation]` 注解
 - [ ] 分层：Controller → Service → Repository
-- [ ] 使用依赖注入
+- [ ] 异步方法以 `Async` 结尾
+- [ ] 公共方法有 `/// <summary>` XML 注释
+
+### 常见反模式
+
+| 反模式 | 正确做法 |
+|--------|----------|
+| `throw new Exception("用户不存在")` | `throw new BusinessException("用户不存在")` |
+| `catch { }` 空捕获 | 捕获并记录日志或抛出业务异常 |
+| `public async Task<T> Xxx()` 无 `Async` 后缀 | 加 `Async` 后缀：`XxxAsync()` |
+| Controller 中写业务逻辑 | 委托 Service 层处理 |
+| 同步方法调 `SaveChangesAsync().Result` | 使用 `await SaveChangesAsync()` |
