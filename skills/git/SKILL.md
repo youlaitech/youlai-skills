@@ -1,5 +1,5 @@
 ---
-name: git-version
+name: git
 description: Git version control automation standards. Use this skill when generating commit messages, managing version numbers, creating tags, or generating changelogs and release notes.
 ---
 
