@@ -1,5 +1,5 @@
 ---
-name: mysql
+name: mysql-design
 description: MySQL database design standards. Use this skill when designing table structures, field types, indexes, or naming conventions for MySQL databases.
 ---
 
