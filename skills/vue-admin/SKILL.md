@@ -1,60 +1,53 @@
 ---
 name: vue-admin
-description: Vue 3 + TypeScript development standards. Use this skill when building Vue 3 applications with Composition API, Pinia, UnoCSS and SCSS. Covers naming, CSS architecture, component structure, API patterns and code quality. UI-library agnostic (Element Plus, Ant Design Vue, etc).
+description: This skill should be used when developing Vue 3 applications with Composition API, creating admin pages with usePageTable composables, configuring routes/menus/permissions/page caching, implementing API request layers with axios, or using Element Plus components (Upload, Dict, TableSelect) in the vue3-element-admin project.
 ---
 
 # Vue 3 开发规范
 
 ## 技术栈
 
-Vue 3 (Composition API) · TypeScript · Vite · Pinia · Vue Router · UnoCSS · SCSS
+Vue 3 (Composition API) · TypeScript · Vite · Pinia · Vue Router · UnoCSS · SCSS · Element Plus
 
 ## 目录结构
 
 ```
 src/
-├── api/                        # API 请求层
-│   ├── common.ts              # 公共类型（ApiResult, PageResult 等）
-│   └── system/user/
-│       ├── index.ts           # API 对象
-│       └── types.ts           # 请求/响应类型
+├── api/                        # API 请求层（index.ts + types.ts）
 ├── components/                 # 全局复用组件
-├── composables/                # 组合式函数（use 前缀）
-├── constants/                  # 常量
-├── directives/                 # 自定义指令
-├── enums/                      # 枚举
-├── lang/                       # 国际化
+├── composables/                # 组合式函数（usePageTable 等）
+├── constants/                  # 常量（StorageKeys 等）
+├── directives/                 # 自定义指令（v-hasPerm 等）
+├── lang/                       # 国际化（index.ts + package/）
 ├── layouts/                    # 布局组件
-├── plugins/                    # 插件注册
 ├── router/                     # 路由 + 守卫
-├── stores/                     # Pinia（扁平结构，无 modules/ 子目录）
+├── stores/                     # Pinia（扁平结构，无 modules/）
 ├── styles/                     # 全局样式
-├── utils/                      # 工具函数
+├── utils/                      # 工具函数（request.ts, auth.ts）
 ├── views/                      # 页面（与路由对应）
-│   └── system/user/
-│       ├── index.vue
-│       └── components/
-└── settings.ts
+│   └── system/role/
+│       └── index.vue          # 单文件：搜索+表格+弹窗
+└── settings.ts                # 项目配置
 ```
 
 ## 命名规范
 
-| 类型 | 风格 | 示例 | 理由 |
-|------|------|------|------|
-| 变量 | camelCase | `userName` | JS 惯例 |
-| 常量 | UPPER_SNAKE_CASE | `MAX_COUNT` | 区分不可变值 |
-| 函数 | camelCase，动词开头 | `fetchUserList` | 动词表行为 |
-| 类/接口/类型 | PascalCase | `UserInfo` | 区分类型与实例 |
-| 枚举 | PascalCase | `StatusEnum` | — |
-| 枚举值 | UPPER_SNAKE_CASE | `StatusEnum.ACTIVE` | 区分枚举成员 |
-| 布尔值 | is/has/can/should 前缀 | `isLoading` | 一眼识别为布尔判断，名词有歧义 |
-| Vue 组件文件 | PascalCase | `UserForm.vue` | 与 HTML 原生元素区分 |
-| 页面文件 | index.vue | `system/user/index.vue` | 路由目录入口 |
-| TS/JS 模块 | kebab-case | `format-date.ts` | 文件系统大小写兼容 |
-| Composables | use + camelCase | `usePageTable` | Vue 官方约定 |
-| Store | use + 模块名 + Store | `useUserStore` | Pinia 约定 |
+| 类型 | 风格 | 示例 |
+|------|------|------|
+| 变量 | camelCase | `userName` |
+| 常量 | UPPER_SNAKE_CASE | `MAX_COUNT` |
+| 函数 | camelCase，动词开头 | `fetchUserList` |
+| 类/接口/类型 | PascalCase | `UserInfo` |
+| 枚举 | PascalCase | `StatusEnum` |
+| 枚举值 | UPPER_SNAKE_CASE | `StatusEnum.ACTIVE` |
+| 布尔值 | is/has/can/should 前缀 | `isLoading` |
+| Vue 组件文件 | PascalCase | `UserForm.vue` |
+| 页面文件 | index.vue | `system/user/index.vue` |
+| TS/JS 模块 | kebab-case | `format-date.ts` |
+| Composables | use + camelCase | `usePageTable` |
+| Store | use + 模块名 + Store | `useUserStore` |
 
-**禁止**：前端类型用 `VO/DTO` 后缀。前端无需区分数据传输层级，语义命名更直观：`UserItem`（列表项）、`UserForm`（表单）、`UserQueryParams`（查询参数）、`UserDetail`（详情）。
+禁止前端类型用 `VO/DTO` 后缀。语义命名：`UserItem`（列表项）、`UserForm`（表单）、`UserQueryParams`（查询参数）、`UserDetail`（详情）。
 
 ## 方法命名与 handle 规则
 
@@ -65,17 +58,15 @@ src/
 | 提交/保存 | `submitForm` / `saveX` |
 | 新增/编辑/删除 | `createX` / `updateX` / `deleteX` |
 | 重置 | `resetForm` / `resetQuery` |
-| 表单校验 | `validateForm` |
-| 导入/导出 | `importX` / `exportX` |
-| **事件入口（流程编排）** | `handleSubmit` / `handleDelete` / `handleEditClick` |
+| 事件入口（流程编排） | `handleSubmit` / `handleEditClick` |
 
-**handle 判断标准**：函数只做一件事 → 不用 handle（可复用）；组合多个动作 + 流程控制 → 用 handle（事件入口）。
+`handle` 判断标准：函数只做一件事 → 不用 handle（可复用）；组合多个动作 + 流程控制 → 用 handle（事件入口）。
 
 ```typescript
-// ✅ 单一动作 → 不用 handle，可被多处复用
+// 单一动作 → 不用 handle
 function openDialog() { dialogState.visible = true; }
 
-// ✅ 流程编排 → 使用 handle，作为事件入口
+// 流程编排 → 使用 handle
 async function handleSubmit() {
   const valid = await validateForm();
   if (!valid) return;
@@ -85,64 +76,41 @@ async function handleSubmit() {
 }
 ```
 
-`fetch/load` 本身已隐含异步语义，不加 `Async` 后缀。单次调用的逻辑直接内联，不过度抽取。
+`fetch/load` 已隐含异步语义，不加 `Async` 后缀。
 
 ## CSS / UnoCSS / SCSS 边界
 
-**核心原则：UnoCSS 只处理无语义微调（间距、对齐），结构性样式归 BEM + SCSS。**
+UnoCSS 只处理无语义微调（间距、对齐），结构性样式归 BEM + SCSS。
 
 | 场景 | 方案 |
 |------|------|
-| 全局页面骨架 | 全局类（如 `page-*`），复用不重复造 |
+| 全局页面骨架 | 全局类（如 `page-*`） |
 | 有结构语义的元素 | BEM + SCSS |
-| 无语义的布局微调 | UnoCSS（间距、flex 对齐等） |
-| 穿透/动画/媒体查询 | SCSS（`:deep()`、`@keyframes`、`@media`） |
+| 无语义布局微调 | UnoCSS |
+| 穿透/动画/媒体查询 | SCSS |
 
-**BEM 元素上可附加少量无语义原子类（间距、对齐），但结构性样式（颜色、背景、圆角、阴影）必须收敛到 SCSS**：
-
-```vue
-<!-- ✅ 无 BEM 类 → 纯 UnoCSS -->
-<div class="flex-y-center gap-10px">...</div>
-
-<!-- ✅ BEM + 1-2 个无语义原子类（间距）可接受 -->
-<div class="user-card mt-4">...</div>
-
-<!-- ❌ BEM + 大量原子类（结构+语义混写） -->
-<div class="user-card flex flex-col gap-4 p-4 bg-white rounded shadow">...</div>
-```
-
+规则：
 - 同一元素原子类 ≤ 3 个，超过提取 BEM
-- 颜色用 UI 库 CSS 变量或项目变量，禁止硬编码
-- 状态用 `is-*`：`is-collapsed`、`is-loading`；变体用 BEM Modifier：`layout--top`、`todo-row--done`
-- BEM 格式：`block__element--modifier`，kebab-case，Block 带页面前缀：`user-card`、`role-permission`
+- 颜色用 CSS 变量，禁止硬编码
+- BEM 格式：`block__element--modifier`，kebab-case，带页面前缀
+- 状态用 `is-*`，变体用 BEM Modifier：`layout--top`
 
 ## 组件规范
 
 - SFC 块顺序：`template` → `script setup` → `style scoped`
-- script 内部顺序：导入（Vue → 第三方 → 类型 → 内部 → 相对路径）→ Props/Emits → 状态 → 计算属性 → 监听器 → 生命周期 → 方法 → defineExpose
-- Props 优先 TypeScript 类型声明 + `withDefaults`，不与运行时声明混用
-- 组件 ≤ 300 行，使用 `<script setup>`
+- script 内部顺序：导入 → Props/Emits → 状态 → 计算属性 → 监听器 → 生命周期 → 方法 → defineExpose
+- Props 优先 TypeScript 类型声明 + `withDefaults`
+- 组件 ≤ 300 行
 
 ## 类型与 API 约定
 
-### 公共类型（api/common.ts）
+### 公共类型
 
 ```typescript
 interface ApiResult<T = unknown> { code: string; data: T; msg: string; }
 interface BaseQueryParams { pageNum: number; pageSize: number; sortBy?: string; order?: string; }
 interface PageResult<T> { list: T[]; total: number; }
-interface OptionItem { value: string | number; label: string; children?: OptionItem[]; }
 ```
-
-### 类型命名
-
-| 语义 | 命名 |
-|------|------|
-| 列表项 | `UserItem` |
-| 表单对象 | `UserForm` |
-| 查询参数 | `UserQueryParams extends BaseQueryParams` |
-| 详情 | `UserDetail` |
-| 登录用户信息 | `UserInfo` |
 
 ### API 定义
 
@@ -150,15 +118,15 @@ interface OptionItem { value: string | number; label: string; children?: OptionI
 const USER_BASE_URL = "/api/v1/users";
 
 const UserAPI = {
-  /** 获取用户分页列表。 */
+  /** 获取用户分页数据 */
   getPage(q: UserQueryParams) { return request<unknown, PageResult<UserItem>>({ url: USER_BASE_URL, method: "get", params: q }); },
-  /** 获取表单详情。 */
+  /** 获取用户表单数据 */
   getFormData(id: string) { return request<unknown, UserForm>({ url: `${USER_BASE_URL}/${id}/form`, method: "get" }); },
-  /** 新增。 */
+  /** 新增用户 */
   create(data: UserForm) { return request({ url: USER_BASE_URL, method: "post", data }); },
-  /** 修改。 */
+  /** 更新用户 */
   update(id: string, data: UserForm) { return request({ url: `${USER_BASE_URL}/${id}`, method: "put", data }); },
-  /** 删除。 */
+  /** 批量删除用户 */
   deleteByIds(ids: string) { return request({ url: `${USER_BASE_URL}/${ids}`, method: "delete" }); },
 };
 
@@ -166,28 +134,30 @@ export default UserAPI;
 export * from "./types";
 ```
 
-| 操作 | 方法名 | HTTP |
-|------|--------|------|
-| 分页查询 | `getPage` | GET |
-| 表单详情 | `getFormData` | GET |
-| 新增 | `create` | POST |
-| 修改 | `update` | PUT |
-| 删除 | `deleteByIds` | DELETE |
-| 导出/导入 | `export` / `import` | GET / POST |
+响应拦截器自动剥壳：`code === "00000"` 时返回 `response.data.data`。Token 过期（`A0230`）时 `refreshTokenOnce()` 单飞刷新。
+
+## 页面开发模式
+
+默认使用 Composables 模式开发页面。仅当明确指定使用 CURD 页面时，才使用 Config 驱动模式：
+
+| 模式 | 适用场景 | 参考 |
+|------|----------|------|
+| Composables 模式（默认） | 列表页、表单页、带自定义交互的页面 | `references/new-page-guide.md` |
+| 简单页面 | 仪表盘、设置页、详情页 | `references/new-page-guide.md` |
+| Config 驱动 CURD（需指定） | 标准增删改查，无特殊交互 | `references/curd-development.md` |
+
+页面根节点统一用 `class="page-container"`，内部分区：`page-search`（搜索区）、`page-content`（内容区）、`page-toolbar`（工具栏）。
 
 ## Store
 
-Setup Store 写法，扁平目录（无 `modules/` 子目录）。组件外使用 `useXxxStoreHook()`。
+Setup Store 写法，扁平目录。组件外使用 `useXxxStoreHook()` 避免 Pinia 未初始化。
 
 ```typescript
 export const useUserStore = defineStore("user", () => {
   const userInfo = ref<UserInfo>({} as UserInfo);
-  const isLoggedIn = computed(() => !!userInfo.value.username);
-  async function login(payload: LoginRequest) { /* ... */ }
-  return { userInfo, isLoggedIn, login };
+  return { userInfo };
 });
 
-// 组件外调用（路由守卫等）
 export function useUserStoreHook() {
   return useUserStore(store);
 }
@@ -195,67 +165,78 @@ export function useUserStoreHook() {
 
 ## Composables
 
-`use` 前缀 + camelCase。参数用 options 对象，返回响应式引用和方法，不需要外部修改的状态用 `readonly()` 包裹。
+`use` 前缀 + camelCase。参数用 options 对象，返回响应式引用和方法。
 
 ## 注释
 
-注释只写有信息量的内容：补充代码未直接表达的背景、意图、约束和边界。不复述代码、不做视觉分隔。
+注释写"为什么"和"踩坑点"，不写代码已经在说的。函数用 `/** */`，不用 `//`。
 
-| 场景 | 写法 | 说明 |
-|------|------|------|
-| 类型/属性/常量 | 单行 `/** ... */` | 说明用途、约束 |
-| 函数/方法 | 多行 JSDoc | 用途、参数、返回值 |
-| 业务规则/兼容策略 | 行内或块级 | 解释为什么这样做 |
-| 大型配置分组 | 简短普通注释 | `// 认证`、`// UI` |
-| 函数内部普通步骤 | 不写 | 通过命名和空行表达 |
-| 纯视觉分隔标题 | 禁止 | 不用横线/等号包裹 |
+**格式**：
+- 函数/方法 → `/** */` JSDoc
+- 类型/接口/属性 → 单行 `/** */`
+- 函数内部"为什么" → `//` 行内
+- 配置分组 → `//` 简短
 
-**JSDoc 规则**：函数多行（至少 3 行），带 `@param`/`@returns` 必须多行。摘要句号结尾。不需要说明就不写。
+**函数注释看情况**：
 
 ```typescript
-// ✅ 分组
-// 认证
-ACCESS_TOKEN: `${APP_PREFIX}:auth:access_token`,
-
-// ✅ 解释边界
-const keys = Object.keys(localStorage).filter(k => k.startsWith(prefix)); // 只清理当前应用写入的缓存
+/** 打开角色表单弹窗 */
+function openDialog() { ... }
 
 /**
- * 搜索仅匹配菜单标题，避免路径命中过多造成结果噪音。
- */
-function searchByTitle() {}
-
-/**
- * 格式化文件大小。
+ * 打开编辑角色弹窗
  *
- * @param bytes - 字节数。
- * @param decimals - 小数位数，默认 2。
- * @returns 格式化后的字符串，如 "1.50 MB"。
+ * @param roleId 角色 ID
  */
-export function formatFileSize(bytes: number, decimals = 2): string { /* ... */ }
+async function handleEditClick(roleId: string) { ... }
 
-// ❌ 复述代码
-const index = list.findIndex(item => item.id === id); // 查找索引
+/**
+ * 校验并提交角色表单
+ *
+ * 非自定义数据权限时丢弃部门 ID
+ */
+async function handleSubmit() { ... }
 ```
 
-行内注释解释“为什么”而非“是什么”，靠近相关代码。
+简单函数一行够了。有参数加 `@param`。有踩坑点就多行补一句——只补"为什么"，不复述函数名已经能看出来的。
+
+**常见错误**：
+
+```typescript
+// ❌ 复述代码：函数名已经说了"打开弹窗"，注释是废话
+/** 打开弹窗 */
+function openDialog() { ... }
+
+// ❌ 描述"做什么"而非"为什么"
+/** 遍历列表并过滤状态为启用的项 */
+const enabledList = list.filter(item => item.status === 1);
+
+// ✅ 写"为什么"
+// status=1 是启用，数据库默认值是 0（禁用）
+const enabledList = list.filter(item => item.status === 1);
+
+// ❌ 每个函数都写注释，哪怕函数名一目了然
+/** 获取用户信息 */
+function getUserInfo() { ... }
+
+// ✅ 函数名能说清的不写
+function getUserInfo() { ... }
+```
 
 ## 反模式速查
 
 | 反模式 | 正确做法 |
 |--------|---------|
 | 类型用 `VO/DTO` 后缀 | 语义命名：`UserItem`、`UserForm` |
-| 硬编码颜色 `#409eff` | UI 库 CSS 变量或项目变量 |
-| 原子类 > 3 个 | 提取 BEM 类 + SCSS |
-| BEM + 大量原子类混写 | BEM 负责结构，原子类仅做无语义微调 |
-| `:deep()` 滥用 | 优先用组件属性/插槽配置 |
-| `height: 100vh` | `min-height: 100vh` |
-| z-index 魔法数字 | CSS 变量分层管理 |
+| 硬编码颜色 | CSS 变量 |
+| 原子类 > 3 个 | 提取 BEM + SCSS |
 | `class UserAPI` 静态方法 | `const UserAPI = {}` 对象字面量 |
 | `stores/modules/` 子目录 | 扁平 `stores/` 结构 |
-| 单次调用过度抽取方法 | 直接内联 |
-| 复述代码的注释 | 只写有信息量的注释 |
-| `handle` 用于单一动作 | handle 仅用于流程编排 |
+| 组件外直接用 `useXxxStore()` | 用 `useXxxStoreHook()` |
+| 手动给 CURD 按钮加 `v-hasPerm` | 用 `permPrefix` 自动拼接 |
+| `meta.title` 直接写中文 | 写语言包 key |
+| 函数用 `//` 注释 | 用 `/** */` JSDoc 格式 |
+| 注释复述"做什么" | 写"为什么"和约束 |
 
 ## 自查清单
 
@@ -263,10 +244,28 @@ const index = list.findIndex(item => item.id === id); // 查找索引
 - [ ] 布尔值有 `is/has/can/should` 前缀
 - [ ] `handle` 仅用于流程编排
 - [ ] API 用 `const XXXAPI = {}` 对象字面量
-- [ ] BEM 带页面/功能前缀
-- [ ] BEM 元素上原子类仅做无语义微调，结构性样式收敛到 SCSS
-- [ ] 颜色用 CSS 变量，不硬编码
+- [ ] BEM 带页面前缀，原子类 ≤ 3 个
+- [ ] 颜色用 CSS 变量
 - [ ] SFC 块顺序：template → script → style
 - [ ] Store 用 Setup Store + `useXxxStoreHook()`
-- [ ] 公共函数有 JSDoc，无复述性注释
-- [ ] 组件 ≤ 300 行，使用 `<script setup>`
+- [ ] 组件 ≤ 300 行
+- [ ] `meta.title` 使用语言包 key
+- [ ] 权限标识遵循 `模块:资源:操作` 格式
+- [ ] API 模块遵循 `index.ts` + `types.ts` 结构
+- [ ] 函数用 `/** */` 注释，不用 `//`
+- [ ] 注释写"为什么"，不复述"做什么"
+
+## 参考文档
+
+以下文档按需加载，涵盖具体开发场景的详细指南：
+
+| 参考文件 | 适用场景 |
+|----------|----------|
+| [references/new-page-guide.md](references/new-page-guide.md) | 新增接口与页面：创建 API 模块、Composables 模式 CURD、简单页面、模式选择 |
+| [references/curd-development.md](references/curd-development.md) | Config 驱动 CURD：配置接口、列模板、表单项、usePage() |
+| [references/router-menu.md](references/router-menu.md) | 配置路由和菜单：静态/动态路由、Meta 字段、多级菜单 |
+| [references/permission.md](references/permission.md) | 权限控制：v-hasPerm 指令、hasPerm() 函数、权限标识命名 |
+| [references/page-caching.md](references/page-caching.md) | 页面缓存：keepAlive 配置、缓存机制、刷新当前页 |
+| [references/i18n.md](references/i18n.md) | 菜单国际化：translateRouteTitle、语言包配置、语言切换 |
+| [references/project-config.md](references/project-config.md) | 项目配置：settings.ts、环境变量、StorageKey 管理 |
+| [references/components.md](references/components.md) | 常用组件：Upload、Dict、TableSelect、IconSelect |
