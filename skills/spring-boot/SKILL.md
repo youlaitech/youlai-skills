@@ -1,351 +1,143 @@
 ---
 name: spring-boot
-description: This skill should be used when developing Spring Boot projects, implementing REST APIs with MyBatis-Plus, configuring authentication with JWT/Redis tokens, implementing permission control with Spring Security, or adding new backend modules in the youlai-boot project.
+description: Develop, review, and refactor Spring Boot backends, with concrete conventions for the youlai-boot project. Use for REST APIs, MyBatis-Plus persistence, model naming, validation, transactions, Spring Security, JWT/Redis tokens, or new backend modules. Outside youlai-boot, preserve the host project's established architecture instead of imposing youlai-specific packages or response types.
+metadata:
+  short-description: Spring Boot 与 youlai-boot 后端开发规范
 ---
 
-# Spring Boot 后端开发规范
+# Spring Boot 后端开发
 
-## 技术栈
+交付符合现有项目架构、接口契约和质量要求的 Spring Boot 代码。先识别当前仓库的真实约定，再决定是沿用、渐进迁移还是明确重构；不要把示例或偏好当成用户未要求的全局改造。
 
-| 层 | 选型 | 说明 |
-|----|------|------|
-| JDK | Java 17+ | 运行环境 |
-| 基础框架 | Spring Boot 3.x | 自动配置、内嵌容器 |
-| ORM | MyBatis-Plus | 增强 CRUD、代码生成 |
-| 数据库 | MySQL 8.x | InnoDB 引擎 |
-| 缓存 | Redis 7.x | 分布式缓存、Token 存储 |
-| 认证 | Spring Security + JWT / Redis Token | 双模式可切换 |
-| API 文档 | Knife4j (Swagger) | OpenAPI 3.0 |
-| 对象映射 | MapStruct | 编译期生成，禁止 BeanUtils |
+## 适用边界
 
-## 目录结构
+- 在 `youlai-boot` 中使用本文件的项目约定。
+- 在其他 Spring Boot 项目中，只采用通用原则；目录、命名、响应包装和权限表达式以目标仓库为准。
+- 用户指令优先。修改前检查 `AGENTS.md`、构建文件、相关模块及未提交改动，避免覆盖用户工作。
+- 普通功能开发不自动扩大为安全审计、全仓重命名、框架升级或多模块拆分。
 
-```
-src/main/java/com/youlai/boot/
-├── YouLaiBootApplication.java      # 启动类
-├── common/                         # 公共模块（常量/枚举/工具/基类）
-├── framework/                      # 框架层（不依赖业务模块）
-│   ├── security/                   # 安全内核（通用，Port 接口解耦）
-│   │   ├── port/                   # UserAuthenticationPort, PermissionPort
-│   │   ├── service/                # SecurityUserDetailsService, PermissionService
-│   │   └── token/                  # TokenManager, JwtTokenManager, RedisTokenManager
-│   ├── mybatis/                    # MybatisConfig, MyMetaObjectHandler
-│   ├── cache/                      # RedisConfig
-│   └── web/                        # Web 基础设施
-│       ├── advice/                 # GlobalExceptionHandler
-│       ├── filter/                 # 请求过滤器
-│       ├── log/                    # OperationLogPort, OperationLogAspect, OperationLog
-│       ├── ratelimit/              # 限流脚本
-│       └── util/                   # Web 工具
-├── auth/                           # 认证模块（登录、Token 发放）
-│   ├── controller/                 # AuthController
-│   └── security/                   # 认证流程实现（Provider/Filter/Handler）
-├── system/                         # 系统管理模块（用户/角色/菜单/部门/字典）
-│   ├── controller/                 # UserController 等
-│   ├── converter/                  # MapStruct Converter
-│   ├── mapper/                     # MyBatis-Plus Mapper
-│   ├── model/                      # entity/ form/ query/ vo/ dto/
-│   ├── service/                    # Service + impl/
-│   └── adapter/                    # 实现 framework 层 Port
-│       ├── log/                    # OperationLogAdapter
-│       └── security/               # UserAuthenticationAdapter, PermissionAdapter
-├── codegen/                        # 代码生成模块
-├── file/                           # 文件管理模块
-└── message/                        # 消息推送模块（SSE）
+## 项目基线
+
+| 层 | 选型 |
+|----|------|
+| JDK | Java 17+ |
+| 基础框架 | Spring Boot 4.x |
+| ORM | MyBatis-Plus |
+| 数据库 | MySQL 8.x |
+| 缓存 | Redis 7.x |
+| 认证 | Spring Security + JWT / Redis Token |
+| API 文档 | Springdoc OpenAPI + Knife4j |
+| 对象映射 | MapStruct，复杂联表可由 Mapper 直接投影 VO |
+
+以目标仓库的 `pom.xml` 和配置类为最终事实；升级依赖或改变兼容基线前先验证官方兼容性。
+
+## 架构边界
+
+目标结构采用“业务域分包、域内分层”的单体架构：
+
+```text
+com.youlai.boot
+├── common/       # 纯共享类型：基础对象、结果、常量、通用异常
+├── framework/    # Web、Security、MyBatis、缓存、切面等基础设施
+├── config/       # 应用装配；不承载业务规则
+├── support/      # file、mail、sms、sse 等外部能力
+├── auth/         # 认证业务
+├── system/       # 用户、角色、菜单、部门、字典等
+├── form/         # 动态表单
+├── workflow/     # 工作流
+└── codegen/      # 代码生成
 ```
 
-设计原则：`common/` 被所有层共享；`framework/` 不依赖业务模块，通过 Port 接口解耦；`auth/` 含认证流程实现；`system/` 通过 Adapter 实现 Port。
+迁移期间可暂存 `module/form`、`module/workflow`，但新增代码不要继续制造两套顶级目录语言。
 
-## 命名规范
+遵守以下边界：
 
-### 类命名
+- `common` 不依赖 `framework`、`config` 或任何业务域。
+- `framework` 不依赖具体业务域；通过 Port 或回调接口获取业务能力。
+- `config` 可以作为组合根装配 framework、auth、system 等 Bean。
+- 跨业务域调用使用意图明确的 Facade、Port 或 Command，不传递另一个域的 Entity。
+- 业务 Service 接口不继承 MyBatis-Plus `IService<Entity>`；实现类可内部复用 `ServiceImpl`。
+- 避免双向包依赖。必要时优先引入项目自有命令对象或领域事件，而不是移动 Entity 到 `common`。
+- 单体项目先用包边界和 ArchUnit 固化依赖方向；没有独立部署需求时不主动拆微服务。
 
-| 类型 | 规范 | 示例 |
-|------|------|------|
-| 实体 | `Sys` 前缀 + PascalCase | `SysUser`, `SysRole` |
-| DTO | 功能 + 类型后缀 | `UserVO`, `UserForm`, `UserPageQuery` |
-| Service | 实体 + Service | `UserService` |
-| Controller | 实体 + Controller | `UserController` |
-| Mapper | 实体 + Mapper | `UserMapper` |
-| Converter | 实体 + Converter | `UserConverter` |
-| 异常 | 名词短语描述状态 + Exception | `MobileNotBoundException` |
+配置类与属性类的归属判定：
 
-### DTO 后缀
+- `@Configuration` 装配类看 Bean 消费方：仅被单个业务域或 support 组件消费的 Bean，装配类随域放置（如 `auth/config/CaptchaConfig`、`support/mail/MailConfig`）；跨域或框架级 Bean 才留在全局 `config/`。检验法：删掉某业务域后 Bean 无人引用，装配类就应随该域移动。
+- `@ConfigurationProperties` 属性类看包根形态：根上已有兄弟类的包（`support/mail`、`support/sms`、`framework/web/ratelimit`）贴根平铺；根下只有子目录的集合根（`auth`、`codegen`、`framework/security`、`support/file`）建 `property/` 子包。
+- 属性类只挂 `@ConfigurationProperties`，不叠加 `@Configuration`；注册统一交给 `@ConfigurationPropertiesScan`，避免组件扫描与属性扫描双重注册。
 
-| 后缀 | 用途 | 示例 |
-|------|------|------|
-| `VO` | 视图对象（返回前端） | `UserVO` |
-| `Form` | 表单对象（新增/更新） | `UserForm` |
-| `Query` | 查询参数 | `UserPageQuery` |
-| `DTO` | 传输对象（内部/服务间） | `RolePermsDTO` |
+## 模型职责与改进方向
 
-### 方法命名
+| 类型 | 建议定义 | 当前项目的改进重点 |
+|------|----------|--------------------|
+| `Entity` | 仅持久化层使用 | 基本合理，但 `SysUser`/`SysLog` 与 `Role`/`Dept`/`Menu` 的 `Sys` 前缀不一致 |
+| `Form` | 写请求输入 | 创建/更新可能共用、Body 内 `id` 与 Path ID 重复，部分入口校验不完整 |
+| `Query` | 查询条件；分页类使用 `XxxPageQuery` | `UserQuery` 实际是分页查询，`DeptQuery` 又是不分页查询，语义不统一 |
+| `VO` | 对外响应或只读投影 | 整体较规范；复杂联表由 Mapper 直接投影 VO 可以保留 |
+| `DTO` | 模块内部或模块间传输 | 已收敛：推送载荷按 `DictChangeDTO` 进 `dto/`，事件语义由主题常量承载 |
 
-| 动作 | 前缀 | 示例 |
-|------|------|------|
-| 查询单个 | getXxx | `getUserById()` |
-| 查询列表 | listXxx | `listUsers()` |
-| 分页查询 | getXxxPage | `getUserPage()` |
-| 新增 | saveXxx | `saveUser()` |
-| 更新 | updateXxx | `updateUser()` |
-| 删除 | removeXxx | `removeByIds()` |
-| 判断存在 | existsXxx | `existsByUsername()` |
-| 下拉选项 | listXxxOptions | `listRoleOptions()` |
+新代码按以下规则收敛，历史代码除非用户要求，不做无收益的批量重命名：
 
-### import 排序
+- Entity 使用领域名，如 `User`、`Role`；表前缀由 `@TableName("sys_user")` 表达。保留现有 `SysUser`、`SysLog` 作为迁移兼容项。
+- 写模型使用 `XxxForm`。创建与更新字段或校验不同时拆为 `XxxCreateForm`、`XxxUpdateForm`。
+- Path 中已有资源 ID 时，以 Path 为唯一事实源，Form 不重复携带 ID。
+- 分页查询使用 `XxxPageQuery`，非分页过滤使用 `XxxQuery`。时间范围优先使用 `createdFrom`、`createdTo` 等明确的时间类型。
+- 不把权限范围、当前用户或租户等执行上下文塞进外部 Query；通过独立上下文参数或安全组件传递。
+- VO 只用于输出，不复用为写模型。Mapper 可为复杂联表直接返回 VO，但不接收 Controller Form。
+- DTO 必须具有明确的内部传输语义。SSE/消息推送载荷是跨层传输载体，按 `XxxDTO` 命名进 `dto/`，事件语义由主题常量（如 `SseTopics`）承载；会话或过程状态放 `context`。只有真正的 Spring 领域事件才建 `event/` 包，不为单个载荷新开分类包。
+- auth 模块与其他业务域统一采用 `Form`/`Query`/`VO`，不要再并存 `req`/`resp` 两套后缀。
 
-```java
-// 1. java.* / jakarta.* 标准库
-// 2. org.springframework.* Spring 框架
-// 3. 第三方库（cn.hutool, com.baomidou, io.swagger 等）
-// 4. 项目内部（com.youlai.boot.*，按 common → framework → 业务模块排序）
-```
+## 输入校验
 
-## RESTful API 规范
+- `@RequestBody` 输入使用 `@Valid`；Controller 类需要校验 Path/Query 标量时使用 `@Validated`。
+- 分页参数约束 `pageNum >= 1`，并为 `pageSize` 设置合理上限。
+- 排序字段必须映射到服务端白名单；排序方向使用枚举或明确的允许值，禁止直接拼接任意 SQL 字段。
+- 状态、类型等有限集合优先使用枚举；为兼容数据库整数时，在边界完成转换和校验。
+- 动态表单的 `Map<String, Object>` 无法只靠 Bean Validation 覆盖，必须执行字段白名单、类型、长度和业务规则校验。
+- 不要只在新增接口校验；更新、状态变更、密码重置等写入口同样必须校验。
 
-### 路径命名
+## API 与响应
 
-- 资源路径：`/api/v1/{资源复数}`，如 `/api/v1/users`
-- 子资源：`/{id}/menus`、`/{id}/form`、`/{id}/status`
+- 资源路径使用复数名词，如 `/api/v1/users`；动作端点只在无法自然表达为资源状态时使用。
+- Controller 返回 `Result<T>` 或 `PageResult<T>`；无响应数据使用 `Result<Void>`，避免 `Result<?>`。
+- Controller 负责协议适配，Service 不返回 `Result`，Mapper 不返回 `Result` 或 `PageResult`。
+- 现有模块可暂时让 Service 返回 `IPage<VO>`、Controller 调用 `PageResult.success(page)`；同一模块不要混用 `Page`、`IPage`、`PageResult` 三种服务契约。
+- 新增成功优先返回资源 ID；更新、删除成功返回 `Result<Void>`。
+- 业务码保留现有 `A****`、`B****`、`C****` 体系，同时使用合适的 HTTP 状态表达协议错误，如 400、401、403、404、409、429、500。
+- 新增/更新接口按实际幂等风险使用 `@RepeatSubmit`；增删改和关键动作按审计需要添加 `@Log`，不要机械标注所有查询。
 
-### 标准 CRUD
+## 持久化与对象转换
 
-| 操作 | 方法 | 路径 |
-|------|------|------|
-| 分页列表 | GET | `/api/v1/roles` |
-| 表单详情 | GET | `/api/v1/roles/{id}/form` |
-| 新增 | POST | `/api/v1/roles` |
-| 更新 | PUT | `/api/v1/roles/{id}` |
-| 删除（批量） | DELETE | `/api/v1/roles/{ids}` |
-| 下拉选项 | GET | `/api/v1/roles/options` |
+- Entity 不直接从 Controller 返回，也不作为跨模块契约。
+- 单表简单映射优先 MapStruct；复杂联表查询允许 Mapper 直接投影 VO。
+- 禁止用 `BeanUtils.copyProperties` 或 JSON 序列化做常规对象转换；少量明确字段手写映射可接受。
+- Entity 的主键策略和逻辑删除方式以项目全局 MyBatis-Plus 配置为准。不要同时编造一套冲突的 `@TableLogic` 或 ID 策略。
 
-### Controller 模板
+## 实施流程
 
-```java
-@Tag(name = "03.角色接口")
-@RestController
-@RequestMapping("/api/v1/roles")
-@RequiredArgsConstructor
-public class RoleController {
+1. 阅读目标模块、相邻模块、数据库映射、配置和测试，确认真实契约。
+2. 判断改动属于输入 Form、查询 Query、输出 VO、内部 DTO/Event/Context 中的哪一类。
+3. 先定义校验、授权、事务边界和失败语义，再实现 Mapper、Service、Controller。
+4. 检查跨域依赖；若需要另一个域的数据或动作，调用窄接口，不依赖其 Entity 或通用 `IService`。
+5. 编译并运行与改动相关的测试；外部数据库、Redis 或第三方服务不可用时，明确说明未验证部分。
+6. 只修改任务范围内文件，报告兼容性影响和剩余迁移项。
 
-    private final RoleService roleService;
+## 注释原则
 
-    @Operation(summary = "角色分页列表")
-    @GetMapping
-    @Log(module = LogModuleEnum.ROLE, value = ActionTypeEnum.LIST)
-    public PageResult<RolePageVO> getRolePage(RoleQuery queryParams) {
-        Page<RolePageVO> result = roleService.getRolePage(queryParams);
-        return PageResult.success(result);
-    }
+- 注释解释约束、原因、副作用、线程/事务要求和容易踩坑的行为，不重复类名、注解或代码表面含义。
+- 公共扩展点、跨模块接口和存在非显然约束的方法应写 Javadoc；简单内部 POJO、显而易见的 getter/setter 不强制逐项注释。
+- 需要稳定生成 Javadoc 摘要时优先使用 `{@summary ...}`。
+- `@author` 沿用项目既有的作者约定，不要自创值；`@since` 写项目当前版本号，与 `pom.xml` 的 `version` 一致，升版本时同步更新，不写日期。
+- API 字段优先由 `@Schema` 描述协议含义；Javadoc 补充领域约束，避免两处复制同一句话。
+- 代码变化时同步更新注释；不确定是否仍成立的历史说明应删除或验证后改写。
 
-    @Operation(summary = "新增角色")
-    @PostMapping
-    @PreAuthorize("@ss.hasPerm('sys:role:create')")
-    @RepeatSubmit
-    @Log(module = LogModuleEnum.ROLE, value = ActionTypeEnum.INSERT)
-    public Result<?> addRole(@Valid @RequestBody RoleForm roleForm) {
-        return Result.judge(roleService.saveRole(roleForm));
-    }
+详细规则见 [references/comments.md](references/comments.md)。
 
-    @Operation(summary = "删除角色")
-    @DeleteMapping("/{ids}")
-    @PreAuthorize("@ss.hasPerm('sys:role:delete')")
-    @Log(module = LogModuleEnum.ROLE, value = ActionTypeEnum.DELETE)
-    public Result<Void> deleteRoles(@PathVariable String ids) {
-        roleService.deleteRoles(ids);
-        return Result.success();
-    }
-}
-```
+## 按需读取参考
 
-### Controller 注解
-
-| 注解 | 用途 |
-|------|------|
-| `@Tag(name = "03.角色接口")` | Swagger 分组（带序号） |
-| `@Operation(summary = "...")` | 接口摘要 |
-| `@PreAuthorize("@ss.hasPerm('xxx')")` | 权限校验 |
-| `@RepeatSubmit` | 防重复提交（新增/更新） |
-| `@Log(module = ..., value = ...)` | 操作日志（增删改） |
-| `@Valid @RequestBody` | 请求体校验 |
-
-## 响应格式与异常处理
-
-### 统一响应 Result
-
-```json
-{ "code": "00000", "msg": "成功", "data": { "id": 1, "username": "admin" } }
-```
-
-```java
-@Data
-public class Result<T> implements Serializable {
-    private String code;  // String，5 位
-    private String msg;
-    private T data;
-
-    public static <T> Result<T> success(T data) { ... }
-    public static <T> Result<T> failed(String msg) { ... }
-    public static <T> Result<T> judge(boolean status) { return status ? success() : failed(); }
-}
-```
-
-### 分页响应 PageResult
-
-```json
-{ "code": "00000", "msg": "成功", "data": { "list": [ ... ], "total": 100 } }
-```
-
-分页接口直接返回 `PageResult`，非分页接口返回 `Result`，两者并列。
-
-### 结果码
-
-遵循阿里巴巴错误码：`00000` 成功，`A****` 用户端错误，`B****` 系统端错误，`C****` 第三方服务错误。
-
-```java
-public enum ResultCode implements IResultCode {
-    SUCCESS("00000", "成功"),
-    ACCESS_TOKEN_INVALID("A0230", "访问令牌无效或已过期"),
-    REFRESH_TOKEN_INVALID("A0231", "刷新令牌无效或已过期"),
-    ACCESS_PERMISSION_EXCEPTION("A0300", "访问权限异常"),
-    SYSTEM_ERROR("B0001", "系统执行出错"),
-    DATABASE_ACCESS_DENIED("C0351", "演示环境已禁用数据库写入功能");
-}
-```
-
-### 业务异常
-
-```java
-throw new BusinessException(ResultCode.USER_PASSWORD_ERROR);
-throw new BusinessException(ResultCode.USER_PASSWORD_ERROR, "密码错误，剩余 2 次");
-```
-
-### 全局异常处理
-
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    @ExceptionHandler(BusinessException.class)
-    public Result<Void> handleBusinessException(BusinessException e) {
-        return Result.failed(e.getCode(), e.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public Result<Void> handleException(Exception e) {
-        log.error("系统异常", e);
-        return Result.failed(ResultCode.SYSTEM_ERROR);
-    }
-}
-```
-
-业务码使用字符串 `[A-C][0-9]{4}` 而非 HTTP 状态码。前端 axios 拦截器根据 `code` 精确判断（`A0230` 触发 Token 刷新，`A0231` 跳转登录页）。
-
-## 实体规范
-
-```java
-@Data
-public class BaseEntity {
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
-
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-
-    @TableLogic
-    private Integer deleted;
-}
-
-@Data
-@EqualsAndHashCode(callSuper = true)
-@TableName("sys_user")
-@Schema(description = "用户实体")
-public class SysUser extends BaseEntity {
-    @Schema(description = "用户名")
-    private String username;
-
-    @Schema(description = "状态(1正常 0禁用)")
-    private Integer status;
-}
-```
-
-## Service 规范
-
-```java
-public interface UserService {
-    PageResult<UserVO> pageUsers(UserPageQuery query);
-    UserForm getUserFormData(Long id);
-    Long saveUser(UserForm form);
-    void removeUsersByIds(List<Long> ids);
-}
-
-@Service
-@RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
-
-    private final SysUserMapper userMapper;
-    private final UserConverter userConverter;
-
-    @Override
-    public PageResult<UserVO> getUserPage(UserPageQuery query) {
-        Page<SysUser> page = new Page<>(query.getPageNum(), query.getPageSize());
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.like(StrUtil.isNotBlank(query.getKeywords()), SysUser::getUsername, query.getKeywords())
-               .eq(query.getStatus() != null, SysUser::getStatus, query.getStatus())
-               .orderByDesc(SysUser::getCreateTime);
-        Page<SysUser> result = userMapper.selectPage(page, wrapper);
-        return PageResult.success(result.convert(userConverter::toVO));
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Long saveUser(UserForm form) {
-        Assert.isTrue(!existsByUsername(form.getUsername()), "用户名已存在");
-        SysUser user = userConverter.toEntity(form);
-        user.setPassword(BCryptUtils.encode(form.getPassword()));
-        userMapper.insert(user);
-        return user.getId();
-    }
-}
-```
-
-## 反模式速查
-
-| 反模式 | 正确做法 |
-|--------|----------|
-| `BeanUtils.copyProperties` | MapStruct |
-| `@Transactional` 无 `rollbackFor` | 加 `rollbackFor = Exception.class` |
-| `this.method()` 调用事务方法 | 注入自身代理 |
-| `log.debug("x" + obj)` | 用占位符 `{}` |
-| 公共方法用 `//` 注释 | 用 `/** */` Javadoc |
-| `NeedBindMobileException` | `MobileNotBoundException`（名词短语） |
-| `MyAuthenticationEntryPoint` | `JsonAuthenticationEntryPoint`（体现特征） |
-| 业务认证组件放 `framework/security` | 放 `auth/security` |
-
-## 自查清单
-
-- [ ] 遵循 RESTful API 路径规范（`/api/v1/{资源复数}`）
-- [ ] 统一响应格式（`Result` code 为 String 类型）
-- [ ] 分页接口返回 `PageResult`
-- [ ] 实体继承 `BaseEntity`，使用 `@TableLogic` 逻辑删除
-- [ ] Service 接口与实现分离
-- [ ] 使用 MapStruct Converter（禁止 `BeanUtils`）
-- [ ] 权限注解用 `@PreAuthorize("@ss.hasPerm('xxx')")`
-- [ ] 增删改接口添加 `@Log` + `@RepeatSubmit`
-- [ ] 写操作加 `@Transactional(rollbackFor = Exception.class)`
-- [ ] 只读查询加 `@Transactional(readOnly = true)`
-- [ ] 公共类/方法用 Javadoc `/** */`，类有 `@author` + `@since`，首句 summary 用英文句号 `.` 收尾（不能用中文 `。`）
-- [ ] 日志用 `@Slf4j` + 占位符 `{}`，敏感信息脱敏
-
-## 参考文档
-
-| 参考文件 | 适用场景 |
-|----------|----------|
-| [references/authentication.md](references/authentication.md) | 认证架构（Ports & Adapters）、Token 模式、权限校验 |
-| [references/transaction.md](references/transaction.md) | 事务规范、失效场景、事务边界 |
-| [references/mapstruct.md](references/mapstruct.md) | MapStruct 对象转换、标准模板 |
-| [references/comments.md](references/comments.md) | Javadoc 注释规范、标签参考、模板 |
-| [references/logging.md](references/logging.md) | 日志级别、打印规范、内容要求 |
-| [references/new-module.md](references/new-module.md) | 添加新模块完整教程（Entity → Mapper → DTO → Converter → Service → Controller） |
+- 认证、白名单、Token 或权限：读 [references/authentication.md](references/authentication.md)。
+- 事务边界或事务失效：读 [references/transaction.md](references/transaction.md)。
+- MapStruct 或查询投影：读 [references/mapstruct.md](references/mapstruct.md)。
+- 日志级别、异常日志、脱敏：读 [references/logging.md](references/logging.md)。
+- 新增业务资源或模块：读 [references/new-module.md](references/new-module.md)。
+- 注释或 Javadoc 专项整理：读 [references/comments.md](references/comments.md)。

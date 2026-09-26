@@ -6,10 +6,10 @@
 
 ### 前端开发
 
-| Skill | 描述 | 技术栈 |
-| --- | --- | --- |
-| [`vue-admin`](https://skills.sh/youlaitech/youlai-skills/vue-admin) | Vue3 管理后台开发规范 | Vue3 + Element Plus + TypeScript |
-| [`uniapp`](https://skills.sh/youlaitech/youlai-skills/uniapp) | UniApp 移动端开发规范 | UniApp + Vue3 + wot-design-uni |
+| Skill                                                                                 | 描述                            | 技术栈                           |
+| ------------------------------------------------------------------------------------- | ------------------------------- | -------------------------------- |
+| [`vue3-element-admin`](https://skills.sh/youlaitech/youlai-skills/vue3-element-admin) | vue3-element-admin 项目开发规范 | Vue3 + Element Plus + TypeScript |
+| [`uniapp`](https://skills.sh/youlaitech/youlai-skills/uniapp)                         | UniApp 移动端开发规范           | UniApp + Vue3 + wot-design-uni   |
 
 ### 后端开发
 
@@ -46,20 +46,20 @@ npx skills add youlaitech/youlai-skills
 
 Skills 根据项目类型自动触发：
 
-| 项目类型          | 触发 Skill     |
-| ----------------- | -------------- |
-| Vue3 管理后台     | `vue-admin`    |
-| UniApp 移动端     | `uniapp`       |
-| Java Spring Boot  | `spring-boot`  |
-| Node.js NestJS    | `nestjs`       |
-| Go Gin            | `gin`          |
-| Python Django     | `django`       |
-| Python FastAPI    | `fastapi`      |
-| PHP ThinkPHP      | `thinkphp`     |
-| .NET ASP.NET Core | `aspnet`       |
-| Rust Axum         | `rust`         |
-| 数据库设计        | `mysql-design` |
-| Git 版本管理      | `git-version`  |
+| 项目类型           | 触发 Skill           |
+| ------------------ | -------------------- |
+| vue3-element-admin | `vue3-element-admin` |
+| UniApp 移动端      | `uniapp`             |
+| Java Spring Boot   | `spring-boot`        |
+| Node.js NestJS     | `nestjs`             |
+| Go Gin             | `gin`                |
+| Python Django      | `django`             |
+| Python FastAPI     | `fastapi`            |
+| PHP ThinkPHP       | `thinkphp`           |
+| .NET ASP.NET Core  | `aspnet`             |
+| Rust Axum          | `rust`               |
+| 数据库设计         | `mysql-design`       |
+| Git 版本管理       | `git-version`        |
 
 ## 每个 Skill 包含
 
@@ -88,7 +88,7 @@ git clone https://github.com/youlaitech/youlai-skills.git
 youlai-skills/
 ├── README.md
 └── skills/
-    ├── vue-admin/SKILL.md
+    ├── vue3-element-admin/SKILL.md
     ├── uniapp/SKILL.md
     ├── spring-boot/SKILL.md
     ├── nestjs/SKILL.md
