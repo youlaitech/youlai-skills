@@ -29,7 +29,7 @@ description: Rust 后端开发规范. Use this skill when developing Rust web pr
 | ORM | **sea-orm** 1.1+ | ActiveRecord + 查询构建器，对标 MyBatis-Plus |
 | 迁移工具 | **sea-orm-migration** 1.1+ | SeaORM 内置 |
 | 数据验证 | **validator** 0.18+ | `#[validate]` 派生，对标 Bean Validation |
-| 数据库 | **PostgreSQL** 16+ | 复用 `youlai-boot-postgres/sql/youlai_admin.sql` |
+| 数据库 | **PostgreSQL** 16+ | 本项目脚本 `sql/youlai_admin.sql`（PG 版；各后端各用自己的脚本，禁止跨项目引用） |
 | 数据库驱动 | **sqlx-postgres** 0.8+ | SeaORM 底层，异步原生 |
 | 缓存 | **Redis** 7.x | `redis` crate 异步客户端 |
 | 本地缓存 | **moka** 0.12+ | 高性能并发缓存 |
@@ -1037,7 +1037,7 @@ services:
     ports: ["5432:5432"]
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ../youlai-boot-postgres/sql/youlai_admin.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./sql/youlai_admin.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     image: redis:7-alpine
@@ -1069,7 +1069,7 @@ volumes:
 
 1. **初始化项目**：`cargo new youlai-rust`，写入 `Cargo.toml`（见设计文档 3.1 节）
 2. **按目录结构创建骨架**（见 Part 2）
-3. **准备数据库**：导入 `youlai-boot-postgres/sql/youlai_admin.sql` 到 PostgreSQL
+3. **准备数据库**：导入本项目 `sql/youlai_admin.sql` 到 PostgreSQL
 4. **生成 Entity**：执行 `sea-orm-cli generate entity`（见设计文档 9.2 节）
 5. **写入配置**：`config/config.toml`（见设计文档第六章）
 6. **按 P0-P8 阶段实现**（见设计文档 9.4 / 第十一章）：

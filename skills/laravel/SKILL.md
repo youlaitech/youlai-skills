@@ -28,7 +28,7 @@ description: Laravel 后端开发规范. Use this skill when developing Laravel 
 | ORM | **Eloquent** | ActiveRecord 风格，对标 MyBatis-Plus |
 | 认证 | **tymon/jwt-auth** | JWT 自包含 Token，guard 名 `admin` |
 | 缓存 | **Redis 7.x** | `cache()` / `Cache::` + Redis 驱动 |
-| 数据库 | **MySQL 8.0+** | 复用 `youlai-laravel/database/youlai_admin.sql` |
+| 数据库 | **MySQL 8.0+** | 本项目脚本 `database/youlai_admin_tenant.sql`（多租户版） |
 | 验证码 | **gregwar/captcha** | 图形验证码 base64 输出 |
 | 密码哈希 | **password_hash** | `PASSWORD_DEFAULT`（bcrypt） |
 | 接口文档 | **Swagger / OpenAPI** | `/api/docs` 或 Knife4j 风格 |
@@ -79,7 +79,7 @@ youlai-laravel/
 ├── bootstrap/                     # 框架启动（app.php 注册中间件别名）
 ├── config/                        # 配置文件
 ├── database/                      # 迁移 / 工厂 / 填充 / SQL
-│   └── youlai_admin.sql           # 系统数据库脚本
+│   └── youlai_admin_tenant.sql    # 系统数据库脚本（多租户版）
 ├── public/                        # 入口目录（index.php）
 ├── resources/                     # 视图 / 语言包 / 前端资源
 ├── routes/                        # 路由定义（api.php / web.php / console.php）
@@ -890,13 +890,13 @@ services:
       MYSQL_DATABASE: youlai_admin
       MYSQL_ROOT_PASSWORD: "123456"
     volumes:
-      - ./database/youlai_admin.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/youlai_admin_tenant.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     image: redis:7-alpine
 ```
 
-> 部署前执行：`composer install --no-dev` 导入 `database/youlai_admin.sql`，并配置 `.env` 的 `APP_KEY`、`DB_*`、`REDIS_*` 与 `SSE_LISTEN_URL_ADMIN`。
+> 部署前执行：`composer install --no-dev` 导入 `database/youlai_admin_tenant.sql`，并配置 `.env` 的 `APP_KEY`、`DB_*`、`REDIS_*` 与 `SSE_LISTEN_URL_ADMIN`。
 
 ---
 
@@ -912,7 +912,7 @@ services:
 
 ### 创建步骤
 
-1. **准备数据库**：导入 `database/youlai_admin.sql` 到 MySQL 8.0+
+1. **准备数据库**：导入 `database/youlai_admin_tenant.sql` 到 MySQL 8.0+
 2. **配置环境**：复制 `.env.example` → `.env`，设置 `APP_KEY`、`DB_*`、`REDIS_*`，执行 `composer install`
 3. **按目录结构创建骨架**（见 Part 2）
 4. **新增模块按 Part 10 流程**：Model → Validate → Service → Controller → 路由
