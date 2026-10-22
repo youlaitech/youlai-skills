@@ -7,7 +7,7 @@
 | 场景                                   | 推荐模式      | 现有参考                                                       |
 | -------------------------------------- | ------------- | -------------------------------------------------------------- |
 | 列表、表单、权限分配、拖拽等自定义交互 | Composables   | `src/views/system/role/index.vue`                              |
-| 仪表盘、详情、设置                     | 简单页面      | `src/views/dashboard/index.vue`、`src/views/profile/index.vue` |
+| 仪表盘、详情、设置                     | 简单页面      | `src/views/dashboard/index.vue`、`src/views/workspace/account/index.vue` |
 | 标准增删改查且明确采用配置驱动         | 配置驱动 CRUD | `src/views/demo/table/crud/`                                   |
 
 维护既有页面时保留当前模式。只有新增页面且没有相邻模式可复用时，才默认选择 Composables。
